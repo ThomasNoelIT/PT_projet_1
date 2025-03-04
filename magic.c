@@ -6,6 +6,7 @@ struct modification
     int length;
     int type;
     struct modification *next;
+    struct modification *prev;
 };
 
 struct magic
