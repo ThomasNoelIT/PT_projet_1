@@ -23,7 +23,7 @@ typedef struct RedBlackTree
     RedBlackTreeNode *root;
     // RedBlackTreeNode **deleted_elements;
     // int deleted_count;
-} RedBlackTree; // Correction du nom de la structure
+} RedBlackTree;
 
 // partie magic
 struct modification
