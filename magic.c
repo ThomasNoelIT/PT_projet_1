@@ -1,10 +1,10 @@
 #include "magic.h"
 
-enum MAGICDirection
+typedef enum
 {
     STREAM_IN_OUT = 0,
     STREAM_OUT_IN = 1
-};
+} MAGICDirection;
 
 typedef enum
 {
