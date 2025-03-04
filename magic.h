@@ -23,7 +23,7 @@ typedef enum MAGICDirection MAGICDirection;
  * Initializes the MAGIC ADT.
  * @return A pointer to the initialized MAGIC instance.
  */
-MAGIC MAGICinit();
+MAGIC MAGICinit(void);
 
 /**
  * Removes a segment of bytes from the stream.

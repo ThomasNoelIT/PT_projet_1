@@ -1,11 +1,18 @@
 #include "magic.h"
 
-// partie rbt
+enum MAGICDirection
+{
+    STREAM_IN_OUT = 0,
+    STREAM_OUT_IN = 1
+};
+
 typedef enum
 {
     RED,
     BLACK
 } Color;
+
+// partie rbt
 
 // Structure for a Red-Black Tree Node
 typedef struct RedBlackTreeNode
@@ -43,14 +50,8 @@ struct magic
     int input_size;
     int output_size;
     struct modification *modifications;
-    RedBlackTree *rb_tree; // Ajout correct de l'arbre
+    RedBlackTree *rb_tree;
     // hachage
-};
-
-enum MAGICDirection
-{
-    STREAM_IN_OUT = 0,
-    STREAM_OUT_IN = 1
 };
 
 MAGIC MAGICinit(void)
