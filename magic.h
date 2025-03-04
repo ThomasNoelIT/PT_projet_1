@@ -7,7 +7,8 @@
 /**
  * Opaque data structure for modification.
  */
-struct modification {
+struct modification
+{
     int pos;
     int length;
     int type;
@@ -17,22 +18,24 @@ struct modification {
 /**
  * Opaque data structure for MAGIC ADT.
  */
-typedef struct magic {
+typedef struct magic
+{
     int input_size;
     int output_size;
 
     // Arbre
-    
+
     struct modification *modifications;
 
-    // table de hachage 
+    // table de hachage
 
 } *MAGIC;
 
 /**
  * Enumeration to define the mapping direction.
  */
-typedef enum {
+typedef enum
+{
     STREAM_IN_OUT = 0,
     STREAM_OUT_IN = 1
 } MAGICDirection;
@@ -74,4 +77,4 @@ int MAGICmap(MAGIC m, MAGICDirection direction, int pos);
  */
 void MAGICdestroy(MAGIC m);
 
-#endif // MAGIC_H
+#endif
