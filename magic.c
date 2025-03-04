@@ -25,6 +25,9 @@ typedef struct RedBlackTree
     // int deleted_count;
 } RedBlackTree;
 
+RedBlackTree *initRedBlackTree(void);
+void destroyRedBlackTree(RedBlackTree *tree);
+
 // partie magic
 struct modification
 {
@@ -55,9 +58,19 @@ MAGIC MAGICinit(void)
     MAGIC m = (MAGIC)malloc(sizeof(struct magic));
     if (!m)
         return NULL;
+
     m->input_size = 0;
     m->output_size = 0;
     m->modifications = NULL;
+
+    // Initialisation de l'arbre rouge-noir via la fonction dédiée
+    m->rb_tree = initRedBlackTree();
+    if (!m->rb_tree)
+    {
+        free(m);
+        return NULL;
+    }
+
     return m;
 }
 
@@ -92,5 +105,16 @@ void MAGICdestroy(MAGIC m)
 {
     if (!m)
         return;
+
+    struct modification *current = m->modifications;
+    while (current)
+    {
+        struct modification *next = current->next;
+        free(current);
+        current = next;
+    }
+
+    destroyRedBlackTree(m->rb_tree);
+
     free(m);
 }
