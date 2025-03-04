@@ -24,6 +24,30 @@ enum MAGICDirection
     STREAM_OUT_IN = 1
 };
 
+typedef enum
+{
+    RED,
+    BLACK
+} Color;
+
+// Structure for a Red Black Tree Node
+typedef struct RedBlackTreeNode
+{
+    int key;   // Node key
+    int value; // output value (-1 if deleted)
+    Color color;
+    struct Node *parent, *left, *right;
+} Node;
+
+// Structure for the Red Black Tree
+typedef struct RedBlackTree
+{
+    Node *NIL; // black leaf
+    Node *root;
+    Node **deleted_elements;
+    int deleted_count;
+} Magic;
+
 MAGIC MAGICinit()
 {
     MAGIC m = (MAGIC)malloc(sizeof(struct magic));
