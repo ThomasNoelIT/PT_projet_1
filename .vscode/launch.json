@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/thomasnoel/Documents/université/science_info/24-25/Q2/Programming techniques/Projet/Projet1/PT_projet_1",
+      "program": "/Users/thomasnoel/Documents/université/science_info/24-25/Q2/Programming techniques/Projet/Projet1/PT_projet_1/build/Debug/outDebug"
+    }
+  ]
+}

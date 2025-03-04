@@ -7,38 +7,17 @@
 /**
  * Opaque data structure for modification.
  */
-struct modification
-{
-    int pos;
-    int length;
-    int type;
-    struct modification *next;
-};
+typedef struct modification MODIFICATION;
 
 /**
  * Opaque data structure for MAGIC ADT.
  */
-typedef struct magic
-{
-    int input_size;
-    int output_size;
-
-    // Arbre
-
-    struct modification *modifications;
-
-    // table de hachage
-
-} *MAGIC;
+typedef struct magic *MAGIC;
 
 /**
- * Enumeration to define the mapping direction.
+ * Opaque data structure for MAGICDirection enumeration.
  */
-typedef enum
-{
-    STREAM_IN_OUT = 0,
-    STREAM_OUT_IN = 1
-} MAGICDirection;
+typedef enum MAGICDirection MAGICDirection;
 
 /**
  * Initializes the MAGIC ADT.
