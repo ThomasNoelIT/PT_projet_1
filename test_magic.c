@@ -24,3 +24,8 @@ int main(void)
     MAGICdestroy(m);
     return 0;
 }
+
+/*
+gcc -Wall -pedantic -std=c11 -O3 -o test_magic test_magic.c magic.c
+./test_magic
+*/
