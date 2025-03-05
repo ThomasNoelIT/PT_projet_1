@@ -5,6 +5,15 @@
 #include <stdlib.h>
 
 /**
+ * Enumeration for mapping direction.
+ */
+typedef enum
+{
+    STREAM_IN_OUT = 0,
+    STREAM_OUT_IN = 1
+} MAGICDirection;
+
+/**
  * Opaque data structure for modification.
  */
 typedef struct modification MODIFICATION;
@@ -13,11 +22,6 @@ typedef struct modification MODIFICATION;
  * Opaque data structure for MAGIC ADT.
  */
 typedef struct magic *MAGIC;
-
-/**
- * Opaque data structure for MAGICDirection enumeration.
- */
-typedef enum MAGICDirection MAGICDirection;
 
 /**
  * Initializes the MAGIC ADT.
