@@ -16,11 +16,9 @@ int main(void)
     MAGICremove(m, 3, 2);
     MAGICremove(m, 4, 3);
 
-    // Test de mapping
     int pos = 5;
     printf("Mapping de l'entrée %d vers sortie : %d\n", pos, MAGICmap(m, STREAM_IN_OUT, pos));
 
-    // Nettoyage
     MAGICdestroy(m);
     return 0;
 }
