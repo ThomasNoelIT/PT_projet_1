@@ -7,8 +7,7 @@
 /**
  * Enumeration for mapping direction.
  */
-typedef enum
-{
+typedef enum{
     STREAM_IN_OUT = 0,
     STREAM_OUT_IN = 1
 } MAGICDirection;

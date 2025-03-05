@@ -1,11 +1,9 @@
 #include <stdio.h>
 #include "magic.h"
 
-int main(void)
-{
+int main(void){
     MAGIC m = MAGICinit();
-    if (!m)
-    {
+    if (!m){
         printf("Échec de l'initialisation de MAGIC.\n");
         return 1;
     }
