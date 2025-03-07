@@ -54,6 +54,7 @@ struct magic{
     // hachage
 };
 
+
 MAGIC MAGICinit(void){
     MAGIC m = (MAGIC)malloc(sizeof(struct magic));
     if (!m)
@@ -71,6 +72,7 @@ MAGIC MAGICinit(void){
 
     return m;
 }
+
 
 void MAGICremove(MAGIC m, int pos, int length){
     if (!m || length <= 0)
@@ -165,12 +167,14 @@ void MAGICadd(MAGIC m, int pos, int length){
     m->output_size += length;
 }
 
+
 int MAGICmap(MAGIC m, MAGICDirection direction, int pos){
     if (!m || pos < 0)
         return -1;
 
     return rb_find_mapping(m->rb_tree, pos, direction);
 }
+
 
 void MAGICdestroy(MAGIC m){
     if (!m)
