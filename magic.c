@@ -23,10 +23,13 @@ typedef struct RedBlackTree{
     // int deleted_count;
 } RedBlackTree;
 
-RedBlackTree *initRedBlackTree(void);
-void destroyRedBlackTree(RedBlackTree *tree);
+RedBlackTree *rb_init(void);
+void rb_destroy(RedBlackTree *tree);
 void rb_insert(RedBlackTree *tree, int input_pos, int output_pos, int length);
 void rb_delete_range(RedBlackTree *tree, int pos, int length);
+int rb_find_mapping(RedBlackTree *tree, int pos, MAGICDirection direction);
+
+
 
 
 
@@ -60,8 +63,7 @@ MAGIC MAGICinit(void){
     m->output_size = 0;
     m->modifications = NULL;
 
-    // Initialisation de l'arbre rouge-noir via la fonction dédiée
-    m->rb_tree = initRedBlackTree();
+    m->rb_tree = rb_init();
     if (!m->rb_tree){
         free(m);
         return NULL;
@@ -164,11 +166,10 @@ void MAGICadd(MAGIC m, int pos, int length){
 }
 
 int MAGICmap(MAGIC m, MAGICDirection direction, int pos){
-    if (!m)
+    if (!m || pos < 0)
         return -1;
-    (void)direction;
-    (void)pos;
-    return 0;
+
+    return rb_find_mapping(m->rb_tree, pos, direction);
 }
 
 void MAGICdestroy(MAGIC m){
@@ -182,7 +183,7 @@ void MAGICdestroy(MAGIC m){
         current = next;
     }
 
-    destroyRedBlackTree(m->rb_tree);
+    rb_destroy(m->rb_tree);
 
     free(m);
 }
