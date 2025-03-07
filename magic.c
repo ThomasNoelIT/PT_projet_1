@@ -26,6 +26,7 @@ typedef struct RedBlackTree{
 RedBlackTree *initRedBlackTree(void);
 void destroyRedBlackTree(RedBlackTree *tree);
 void rb_insert(RedBlackTree *tree, int input_pos, int output_pos, int length);
+void rb_delete_range(RedBlackTree *tree, int pos, int length);
 
 
 
@@ -70,12 +71,51 @@ MAGIC MAGICinit(void){
 }
 
 void MAGICremove(MAGIC m, int pos, int length){
-    if (!m)
+    if (!m || length <= 0)
         return;
-    (void)pos;
-    (void)length;
-    return;
+
+    struct modification *new_mod = (struct modification *)malloc(sizeof(struct modification));
+    if (!new_mod)
+        return;
+
+    new_mod->pos = pos;
+    new_mod->length = length;
+    new_mod->type = -1; // -1 = suppression
+    new_mod->next = NULL;
+    new_mod->prev = NULL;
+
+    if (!m->modifications){
+        m->modifications = new_mod;
+    }
+    else{
+        struct modification *current = m->modifications;
+        struct modification *prev = NULL;
+
+        while (current && current->pos < pos){
+            prev = current;
+            current = current->next;
+        }
+
+        if (!prev){
+            new_mod->next = m->modifications;
+            if (m->modifications)
+                m->modifications->prev = new_mod;
+            m->modifications = new_mod;
+        }
+        else{
+            new_mod->next = current;
+            new_mod->prev = prev;
+            prev->next = new_mod;
+            if (current)
+                current->prev = new_mod;
+        }
+    }
+
+    // maj arbre
+    rb_delete_range(m->rb_tree, pos, length);
+    m->output_size -= length;
 }
+
 
 void MAGICadd(MAGIC m, int pos, int length){
     if (!m || length <= 0)
