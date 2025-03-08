@@ -10,6 +10,7 @@ typedef enum{
 // Structure for a Red-Black Tree Node
 typedef struct RedBlackTreeNode{
     int key;   // Node key
+    int input_key; // Input key
     int value; // Output value (-1 if deleted)
     Color color;
     struct RedBlackTreeNode *parent, *left, *right;
