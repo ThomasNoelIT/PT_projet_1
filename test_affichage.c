@@ -1,200 +1,152 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-typedef enum {
-    RED,
-    BLACK
-} Color;
+#define WIDTH 800
+#define HEIGHT 600
 
-typedef struct RedBlackTreeNode {
-    int key;
-    Color color;
-    struct RedBlackTreeNode *parent, *left, *right;
-    int x, y;  // Coordonnées pour le dessin
-} RedBlackTreeNode;
+typedef struct Node {
+    int value;
+    struct Node* left;
+    struct Node* right;
+    int color;  // 0 = noir, 1 = rouge
+} Node;
 
-typedef struct RedBlackTree {
-    RedBlackTreeNode *NIL;
-    RedBlackTreeNode *root;
-} RedBlackTree;
-
-// Déclaration des fonctions de dessin
-void draw_tree(SDL_Renderer *renderer, RedBlackTreeNode *node, int x, int y, int offset);
-void draw_node(SDL_Renderer *renderer, RedBlackTreeNode *node);
-void SDL_RenderFillEllipse(SDL_Renderer *renderer, int x, int y, int w, int h);
-void draw_text(SDL_Renderer *renderer, const char *text, int x, int y);
-RedBlackTreeNode* rb_insert_node(RedBlackTree *tree, int key);
-
-RedBlackTreeNode *rb_init_node(int key, Color color) {
-    RedBlackTreeNode *node = (RedBlackTreeNode *)malloc(sizeof(RedBlackTreeNode));
-    node->key = key;
+// Créer un nouveau nœud
+Node* createNode(int value, int color) {
+    Node* node = (Node*)malloc(sizeof(Node));
+    node->value = value;
+    node->left = node->right = NULL;
     node->color = color;
-    node->left = node->right = node->parent = NULL;
-    node->x = node->y = 0;
     return node;
 }
 
-RedBlackTree *rb_init() {
-    RedBlackTree *tree = (RedBlackTree *)malloc(sizeof(RedBlackTree));
-    tree->NIL = rb_init_node(-1, BLACK);
-    tree->root = tree->NIL;
-    return tree;
+// Initialisation SDL
+int initSDL(SDL_Window** window, SDL_Renderer** renderer) {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("Erreur SDL: %s\n", SDL_GetError());
+        return 0;
+    }
+    *window = SDL_CreateWindow("Arbre Rouge-Noir", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
+    if (!*window) {
+        printf("Erreur fenêtre: %s\n", SDL_GetError());
+        return 0;
+    }
+    *renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_ACCELERATED);
+    if (!*renderer) {
+        printf("Erreur renderer: %s\n", SDL_GetError());
+        return 0;
+    }
+    return 1;
 }
 
-void rb_insert(RedBlackTree *tree, int key) {
-    RedBlackTreeNode *new_node = rb_insert_node(tree, key);
-    // Ajoutez ici la logique pour ajuster l'arbre en fonction des règles des arbres rouges-noirs.
-    // Par exemple, vous devez assurer que l'arbre est équilibré après l'insertion.
-}
-
-RedBlackTreeNode* rb_insert_node(RedBlackTree *tree, int key) {
-    RedBlackTreeNode *new_node = rb_init_node(key, RED);
-    RedBlackTreeNode *parent = tree->root;
-    RedBlackTreeNode *x = tree->root;
-
-    while (x != tree->NIL) {
-        parent = x;
-        if (key < x->key) {
-            x = x->left;
-        } else {
-            x = x->right;
-        }
-    }
-
-    new_node->parent = parent;
-
-    if (parent == tree->root || key < parent->key) {
-        parent->left = new_node;
-    } else {
-        parent->right = new_node;
-    }
-
-    new_node->left = new_node->right = tree->NIL;
-    return new_node;
-}
-
-void draw_tree(SDL_Renderer *renderer, RedBlackTreeNode *node, int x, int y, int offset) {
-    if (node == NULL || node->key == -1) return;
-
-    node->x = x;
-    node->y = y;
-
-    // Dessiner le nœud actuel
-    draw_node(renderer, node);
-
-    // Dessiner les branches et les nœuds enfants
-    if (node->left != NULL && node->left->key != -1) {
-        SDL_RenderDrawLine(renderer, x, y, node->left->x, node->left->y);
-        draw_tree(renderer, node->left, x - offset, y + 50, offset / 2);
-    }
-    if (node->right != NULL && node->right->key != -1) {
-        SDL_RenderDrawLine(renderer, x, y, node->right->x, node->right->y);
-        draw_tree(renderer, node->right, x + offset, y + 50, offset / 2);
-    }
-}
-
-void draw_node(SDL_Renderer *renderer, RedBlackTreeNode *node) {
-    // Définir la couleur en fonction du nœud (rouge ou noir)
-    if (node->color == RED) {
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Rouge
-    } else {
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);    // Noir
-    }
-
-    // Dessiner un cercle
-    SDL_RenderFillEllipse(renderer, node->x - 15, node->y - 15, 30, 30);
-
-    // Afficher la clé
-    char key_str[10];
-    snprintf(key_str, 10, "%d", node->key);
-    draw_text(renderer, key_str, node->x - 10, node->y - 10);  // Fonction de texte
-}
-
-void SDL_RenderFillEllipse(SDL_Renderer *renderer, int x, int y, int w, int h) {
-    int rx = w / 2;
-    int ry = h / 2;
-    int cx = x + rx;
-    int cy = y + ry;
-    int dx = 0;
-    int dy = ry;
-    int d = 1 - ry;
-
-    while (dx <= rx) {
-        SDL_RenderDrawLine(renderer, cx - dx, cy + dy, cx + dx, cy + dy);
-        SDL_RenderDrawLine(renderer, cx - dx, cy - dy, cx + dx, cy - dy);
-        SDL_RenderDrawLine(renderer, cx - dy, cy + dx, cx + dy, cy + dx);
-        SDL_RenderDrawLine(renderer, cx - dy, cy - dx, cx + dy, cy - dx);
-        if (d <= 0) {
-            d += 2 * dx + 3;
-        } else {
-            d += 2 * (dx - dy) + 5;
-            dy--;
-        }
-        dx++;
-    }
-}
-
-void draw_text(SDL_Renderer *renderer, const char *text, int x, int y) {
-    // Initialiser la couleur du texte (blanc)
-    SDL_Color color = {255, 255, 255};  // Blanc
-    // Créer la surface de texte
-    SDL_Surface *textSurface = TTF_RenderText_Solid(TTF_OpenFont("arial.ttf", 24), text, color);
-    SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-    SDL_Rect textRect = { x, y, textSurface->w, textSurface->h };
-    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
-    SDL_DestroyTexture(textTexture);
-    SDL_FreeSurface(textSurface);
-}
-
-int main(int argc, char *argv[]) {
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        fprintf(stderr, "SDL_Init Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    if (TTF_Init() == -1) {
-        fprintf(stderr, "SDL_ttf Error: %s\n", TTF_GetError());
-        return 1;
-    }
-
-    SDL_Window *window = SDL_CreateWindow("Arbre Rouge-Noir", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
-    if (window == NULL) {
-        fprintf(stderr, "SDL_CreateWindow Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (renderer == NULL) {
-        fprintf(stderr, "SDL_CreateRenderer Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    RedBlackTree *tree = rb_init();
-    rb_insert(tree, 10);
-    rb_insert(tree, 5);
-    rb_insert(tree, 15);
-
-    SDL_RenderClear(renderer);
-    draw_tree(renderer, tree->root, 400, 50, 100);
-    SDL_RenderPresent(renderer);
-
-    // Attendre que l'utilisateur appuie sur une touche pour fermer
-    SDL_Event event;
-    int quit = 0;
-    while (!quit) {
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN)) {
-                quit = 1;
+// Dessiner un cercle
+void drawCircle(SDL_Renderer* renderer, int x, int y, int radius) {
+    for (int w = 0; w < radius * 2; w++) {
+        for (int h = 0; h < radius * 2; h++) {
+            int dx = radius - w; 
+            int dy = radius - h;
+            if ((dx * dx + dy * dy) <= (radius * radius)) {
+                SDL_RenderDrawPoint(renderer, x + dx, y + dy);
             }
         }
     }
+}
 
+// Dessiner une ligne
+void drawLine(SDL_Renderer* renderer, int x1, int y1, int x2, int y2) {
+    SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+}
+
+// Afficher le texte
+void drawText(SDL_Renderer* renderer, TTF_Font* font, int x, int y, char* text, SDL_Color color) {
+    SDL_Surface* surface = TTF_RenderText_Solid(font, text, color);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_Rect dest = {x - surface->w / 2, y - surface->h / 2, surface->w, surface->h};
+    SDL_RenderCopy(renderer, texture, NULL, &dest);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+}
+
+// Dessiner l'arbre récursivement
+void drawTree(SDL_Renderer* renderer, TTF_Font* font, Node* root, int x, int y, int offset, int depth) {
+    if (!root) return;
+
+    int childY = y + 80;
+
+    // Dessiner les liens
+    if (root->left) {
+        drawLine(renderer, x, y + 20, x - offset, childY);
+        drawTree(renderer, font, root->left, x - offset, childY, offset / 2, depth + 1);
+    }
+    if (root->right) {
+        drawLine(renderer, x, y + 20, x + offset, childY);
+        drawTree(renderer, font, root->right, x + offset, childY, offset / 2, depth + 1);
+    }
+
+    // Définir la couleur du nœud (rouge ou noir)
+    SDL_Color textColor = {255, 255, 255};
+    if (root->color == 0)
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Noir
+    else
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Rouge
+
+    drawCircle(renderer, x, y, 20);
+
+    // Afficher la valeur du nœud
+    char valueText[10];
+    sprintf(valueText, "%d", root->value);
+    drawText(renderer, font, x, y, valueText, textColor);
+}
+
+// Fonction principale
+int main() {
+    SDL_Window* window = NULL;
+    SDL_Renderer* renderer = NULL;
+
+    if (!initSDL(&window, &renderer)) return -1;
+    if (TTF_Init() == -1) {
+        printf("Erreur TTF: %s\n", TTF_GetError());
+        return -1;
+    }
+
+    TTF_Font* font = TTF_OpenFont("/System/Library/Fonts/Supplemental/Arial.ttf", 16);
+    if (!font) {
+        printf("Erreur chargement police: %s\n", TTF_GetError());
+        return -1;
+    }
+
+    // Créer un arbre de test
+    Node* root = createNode(10, 0);
+    root->left = createNode(5, 1);
+    root->right = createNode(15, 1);
+    root->left->left = createNode(2, 0);
+    root->left->right = createNode(7, 0);
+    root->right->right = createNode(20, 0);
+
+    int quit = 0;
+    SDL_Event event;
+
+    while (!quit) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) quit = 1;
+        }
+
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_RenderClear(renderer);
+
+        drawTree(renderer, font, root, WIDTH / 2, 50, WIDTH / 4, 0);
+
+        SDL_RenderPresent(renderer);
+        SDL_Delay(16);
+    }
+
+    // Libération mémoire
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    TTF_CloseFont(font);
     TTF_Quit();
     SDL_Quit();
-
     return 0;
 }

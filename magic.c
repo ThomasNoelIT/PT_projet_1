@@ -5,13 +5,23 @@ typedef enum{
     BLACK
 } Color;
 
+typedef enum{
+    action_add = 1,
+    action_null = 0,
+    action_remove = -1
+} action;
+
 // partie rbt
+typedef struct modification{
+    action act;
+    int pos;
+    int length;
+} Modification;
 
 // Structure for a Red-Black Tree Node
 typedef struct RedBlackTreeNode{
     int key;   // Node key
-    int input_key; // Input key
-    int value; // Output value (-1 if deleted)
+    struct modification mod;
     Color color;
     struct RedBlackTreeNode *parent, *left, *right;
 } RedBlackTreeNode;
@@ -43,7 +53,11 @@ RedBlackTree *rb_init(void){
     
     tree->NIL->color = BLACK;
     tree->NIL->left = tree->NIL->right = tree->NIL->parent = NULL;
-    tree->NIL->key = tree->NIL->input_key = tree->NIL->value = -1;
+    tree->NIL->key = -1;
+
+    tree->NIL->mod.act = action_null;
+    tree->NIL->mod.pos = 0;
+    tree->NIL->mod.length = 0;
     
     tree->root = tree->NIL;
     return tree;
