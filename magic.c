@@ -5,127 +5,185 @@ typedef enum{
     BLACK
 } Color;
 
-typedef enum{
-    action_add = 1,
-    action_null = 0,
-    action_remove = -1
-} action;
-
-// partie rbt
-typedef struct modification{
-    action act;
-    int pos;
-    int length;
-} Modification;
-
-// Structure for a Red-Black Tree Node
-typedef struct RedBlackTreeNode{
-    int key;   // Node key
-    struct modification mod;
-    Color color;
-    struct RedBlackTreeNode *parent, *left, *right;
-} RedBlackTreeNode;
+typedef struct RedBlackTreeNode {
+    int pos;         // Position where the modification start
+    int delta;       // bytes added (+) or deleted (-)
+    int totalShift;  // cumulated shift after modif
+    struct RedBlackTreeNode *left, *right, *parent;
+    Color color;       // Rouge ou Noir
+} RBNode;
 
 // Structure for the Red-Black Tree
 typedef struct RedBlackTree{
-    RedBlackTreeNode *NIL; // Black leaf
-    RedBlackTreeNode *root;
-} RedBlackTree;
+    RBNode *NIL; // Black leaf
+    RBNode *root;
+} RBTree;
 
-// Fonctions de gestion de l'arbre rouge-noir
-void rb_rotate_left(RedBlackTree *tree, RedBlackTreeNode *x);
-void rb_rotate_right(RedBlackTree *tree, RedBlackTreeNode *y);
-void rb_fix_insert(RedBlackTree *tree, RedBlackTreeNode *node);
-void rb_fix_delete(RedBlackTree *tree, RedBlackTreeNode *node);
-RedBlackTreeNode *rb_minimum(RedBlackTree *tree, RedBlackTreeNode *node);
-RedBlackTreeNode *rb_transplant(RedBlackTree *tree, RedBlackTreeNode *u, RedBlackTreeNode *v);
+RBTree *RBTreeInit(void);
+RBNode *createNode(RBTree *tree, int pos, int delta);
+void RBTreeLeftRotate(RBTree *tree, RBNode *x);
+void RBTreeRightRotate(RBTree *tree, RBNode *y);
+void RBTreeFixInsert(RBTree *tree, RBNode *node);
+void RBTreeInsert(RBTree *tree, int pos, int delta);
+RBNode *RBTreeMinimum(RBTree *tree, RBNode *node);
+RBTree *RBTreeTransplant(RBTree *tree, RBNode *u, RBNode *v);
+void RBTreeDestroyRec(RBTree *tree, RBNode *node);
+void RBTreeDestroy(RBTree *tree);
+RBNode *RBTreeDelete(RBTree *tree, RBNode *node);
+void RBTreeRemove(RBTree *tree, int pos, int length);
+int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction);
 
-RedBlackTree *rb_init(void){
-    RedBlackTree *tree = (RedBlackTree *)malloc(sizeof(RedBlackTree));
-    if (!tree)
-        return NULL;
-    
-    tree->NIL = (RedBlackTreeNode *)malloc(sizeof(RedBlackTreeNode));
-    if (!tree->NIL){
-        free(tree);
-        return NULL;
-    }
-    
-    tree->NIL->color = BLACK;
-    tree->NIL->left = tree->NIL->right = tree->NIL->parent = NULL;
-    tree->NIL->key = -1;
-
-    tree->NIL->mod.act = action_null;
-    tree->NIL->mod.pos = 0;
-    tree->NIL->mod.length = 0;
-    
-    tree->root = tree->NIL;
-    return tree;
-}
-
-void rb_destroy_recursive(RedBlackTree *tree, RedBlackTreeNode *node){
+void RBTreeDestroyRec(RBTree *tree, RBNode *node){
     if (node == tree->NIL)
         return;
     
-    rb_destroy_recursive(tree, node->left);
-    rb_destroy_recursive(tree, node->right);
+    RBTreeDestroyRec(tree, node->left);
+    RBTreeDestroyRec(tree, node->right);
     free(node);
 }
 
-void rb_destroy(RedBlackTree *tree){
+void RBTreeDestroy(RBTree *tree){
     if (!tree)
         return;
     
-    rb_destroy_recursive(tree, tree->root);
+    RBTreeDestroyRec(tree, tree->root);
     free(tree->NIL);
     free(tree);
 }
 
-void rb_insert(RedBlackTree *tree, int input_pos, int output_pos, int length){
-    RedBlackTreeNode *new_node = (RedBlackTreeNode *)malloc(sizeof(RedBlackTreeNode));
-    if (!new_node)
-        return;
-    
-    new_node->key = input_pos;
-    new_node->input_key = input_pos;
-    new_node->value = output_pos;
-    new_node->color = RED;
-    new_node->left = tree->NIL;
-    new_node->right = tree->NIL;
-    
-    RedBlackTreeNode *y = tree->NIL;
-    RedBlackTreeNode *x = tree->root;
-    
-    while (x != tree->NIL) {
-        y = x;
-        if (new_node->key < x->key)
-            x = x->left;
-        else
-            x = x->right;
+RBTree *RBTreeInit(void) {
+    RBTree *tree = (RBTree *)malloc(sizeof(RBTree));
+    if (!tree) {
+        fprintf(stderr, "Error: Memory allocation failed for RBT structure.\n");
+        return NULL;
     }
     
-    new_node->parent = y;
-    if (y == tree->NIL)
-        tree->root = new_node;
-    else if (new_node->key < y->key)
-        y->left = new_node;
-    else
-        y->right = new_node;
+    tree->NIL = (RBNode *)malloc(sizeof(RBNode));
+    if (!tree->NIL) {
+        fprintf(stderr, "Error: Memory allocation failed for NIL node.\n");
+        free(tree);
+        return NULL;
+    }
     
-    rb_fix_insert(tree, new_node);
+    // Initialize NIL node
+    tree->NIL->color = BLACK;
+    tree->NIL->left = tree->NIL->right = tree->NIL->parent = tree->NIL;  // Reference itself
+    tree->NIL->pos = -1;
+    tree->NIL->delta = 0;
+    tree->NIL->totalShift = 0;
+
+    // Root initially points to NIL
+    tree->root = tree->NIL;
+    
+    return tree;
 }
 
-RedBlackTreeNode *rb_delete_node(RedBlackTree *tree, RedBlackTreeNode *node){
-    RedBlackTreeNode *y = node;
-    RedBlackTreeNode *x;
+RBNode* createNode(RBTree *tree, int pos, int delta) {
+    RBNode *newNode = (RBNode*)malloc(sizeof(RBNode));
+    if (!newNode) return NULL;
+
+    newNode->pos = pos;
+    newNode->delta = delta;
+    newNode->totalShift = delta;// by default
+    newNode->left = newNode->right = newNode->parent = tree->NIL;
+    newNode->color = RED;
+
+    return newNode;
+}
+
+void RBTreeInsert(RBTree *tree, int pos, int delta) {
+    RBNode *y = tree->NIL;  // Pointer to the parent of the new node
+    RBNode *x = tree->root; // Start from the root
+
+    int shift = 0; // Cumulative shift to update totalShift
+
+    // Search for the insertion position and merge if `pos` already exists
+    while (x != tree->NIL) {
+        y = x;
+        if (pos == x->pos) {
+            // If a node at this position already exists, merge `delta`
+            x->delta += delta;
+            return;
+        }
+        if (pos < x->pos) {
+            x = x->left;
+        } else {
+            shift += x->delta; // Accumulate shifts before insertion
+            x = x->right;
+        }
+    }
+
+    RBNode *z = createNode(tree, pos, delta);
+    if (!z) return;
+
+    z->parent = y;
+    if (y == tree->NIL) {
+        tree->root = z;
+    } else if (pos < y->pos) {
+        y->left = z;
+    } else {
+        y->right = z;
+    }
+
+    z->totalShift += shift;
+
+    RBTreeFixInsert(tree, z);
+}
+
+void RBTreeFixInsert(RBTree *tree, RBNode *z) {
+    while (z->parent->color == RED) {  // While the parent of z is red (violation of property 4)
+        if (z->parent == z->parent->parent->left) {  // If the parent of z is the left child of the grandparent
+            RBNode *uncle = z->parent->parent->right; 
+            if (uncle->color == RED) {  // Case 1: Uncle is red
+                // Change the color of the parent and the uncle to black
+                z->parent->color = BLACK;
+                uncle->color = BLACK;
+                // Change the color of the grandparent to red
+                z->parent->parent->color = RED;
+                z = z->parent->parent;  // Move up to the grandparent
+            } else {  // Case 2: Uncle is black
+                if (z == z->parent->right) {
+                    z = z->parent;
+                    LeftRotate(tree, z);
+                }
+                z->parent->color = BLACK;
+                z->parent->parent->color = RED;
+                RightRotate(tree, z->parent->parent);
+            }
+        } else {  // If the parent of z is the right child of the grandparent
+            RBNode *uncle = z->parent->parent->left;
+            if (uncle->color == RED) {  // Case 1: Uncle is red
+                z->parent->color = BLACK;
+                uncle->color = BLACK;
+                z->parent->parent->color = RED;
+                z = z->parent->parent;  // Move up to the grandparent
+            } else {  // Case 2: Uncle is black
+                if (z == z->parent->left) {
+                    z = z->parent;
+                    RightRotate(tree, z);
+                }
+                z->parent->color = BLACK;
+                z->parent->parent->color = RED;
+                LeftRotate(tree, z->parent->parent);
+            }
+        }
+    }
+    // Ensure that the root is always black
+    tree->root->color = BLACK;
+}
+
+
+RBNode *RBTreeDelete(RBTree *tree, RBNode *node){
+    RBNode *y = node;
+    RBNode *x;
     Color original_color = y->color;
     
     if (node->left == tree->NIL) {
         x = node->right;
-        rb_transplant(tree, node, node->right);
+        RBTreeTransplant(tree, node, node->right);
     } else if (node->right == tree->NIL) {
         x = node->left;
-        rb_transplant(tree, node, node->left);
+        RBTreeTransplant(tree, node, node->left);
     } else {
         y = rb_minimum(tree, node->right);
         original_color = y->color;
@@ -134,11 +192,11 @@ RedBlackTreeNode *rb_delete_node(RedBlackTree *tree, RedBlackTreeNode *node){
         if (y->parent == node)
             x->parent = y;
         else {
-            rb_transplant(tree, y, y->right);
+            RBTreeTransplant(tree, y, y->right);
             y->right = node->right;
             y->right->parent = y;
         }
-        rb_transplant(tree, node, y);
+        RBTreeTransplant(tree, node, y);
         y->left = node->left;
         y->left->parent = y;
         y->color = node->color;
@@ -151,55 +209,74 @@ RedBlackTreeNode *rb_delete_node(RedBlackTree *tree, RedBlackTreeNode *node){
     return x;
 }
 
-void rb_remove(RedBlackTree *tree, int pos, int length){
-    RedBlackTreeNode *node = tree->root;
+void RBTreeRemove(RBTree *tree, int pos, int length){
+    RBNode *node = tree->root;
     while (node != tree->NIL) {
-        if (pos == node->key) {
-            rb_delete_node(tree, node);
+        if (pos == node->pos) {
+            RBTreeDelete(tree, node);
             return;
-        } else if (pos < node->key)
+        } else if (pos < node->pos)
             node = node->left;
         else
             node = node->right;
     }
 } 
 
-int rb_find_mapping(RedBlackTree *tree, int pos, MAGICDirection direction){
-    RedBlackTreeNode *node = tree->root;
-    while (node != tree->NIL) {
-        if (pos == node->key)
-            return node->value;
-        else if (pos < node->key)
-            node = node->left;
-        else
-            node = node->right;
+void RBTReeLeftRotate(RBTree *tree, RBNode *x) {
+    RBNode *y = x->right;      // The node to the right of x becomes the pivot node
+    x->right = y->left;        // The left subtree of y becomes the right subtree of x
+
+    if (y->left != tree->NIL) {
+        y->left->parent = x;   // The parent of y's left subtree becomes x
     }
-    return -1;
+
+    y->parent = x->parent;     // The parent of y becomes the parent of x
+
+    if (x->parent == tree->NIL) {
+        tree->root = y;
+    } else if (x == x->parent->left) {
+        x->parent->left = y;   // If x is the left child of its parent, y becomes its left child
+    } else {
+        x->parent->right = y;  // If x is the right child of its parent, y becomes its right child
+    }
+
+    y->left = x;               // x becomes the left child of y
+    x->parent = y;             // The parent of x becomes y
 }
 
 
+void RBTreeRightRotate(RBTree *tree, RBNode *x) {
+    RBNode *y = x->left;       // The node to the left of x becomes the pivot node
+    x->left = y->right;        // The right subtree of y becomes the left subtree of x
 
+    if (y->right != tree->NIL) {
+        y->right->parent = x;  // The parent of y's right subtree becomes x
+    }
 
+    y->parent = x->parent;     // The parent of y becomes the parent of x
 
+    if (x->parent == tree->NIL) {
+        tree->root = y;
+    } else if (x == x->parent->right) {
+        x->parent->right = y;  // If x is the right child of its parent, y becomes its right child
+    } else {
+        x->parent->left = y;   // If x is the left child of its parent, y becomes its left child
+    }
 
-
-
+    y->right = x;              // x becomes the right child of y
+    x->parent = y;             // The parent of x becomes y
+}
 
 // partie magic
 struct magic{
-    int input_size;
-    int output_size;
-    RedBlackTree *rb_tree;
+    RBTree *rb_tree;
 };
 
 MAGIC MAGICinit(void){
     MAGIC m = (MAGIC)malloc(sizeof(struct magic));
     if (!m)
         return NULL;
-
-    m->input_size = 0;
-    m->output_size = 0;
-    m->rb_tree = rb_init();
+    m->rb_tree = RBInit();
     if (!m->rb_tree){
         free(m);
         return NULL;
@@ -211,23 +288,21 @@ void MAGICremove(MAGIC m, int pos, int length){
     if (!m || length <= 0)
         return;
     
-    rb_remove(m->rb_tree, pos, length);
-    m->output_size -= length;
+    RBTreeInsert(m->rb_tree, pos, length);
 }
 
 void MAGICadd(MAGIC m, int pos, int length){
     if (!m || length <= 0)
         return;
     
-    rb_insert(m->rb_tree, pos, pos + length, length);
-    m->output_size += length;
+    RBTreeInsert(m->rb_tree, pos, pos + length, length);
 }
 
 int MAGICmap(MAGIC m, MAGICDirection direction, int pos){
     if (!m || pos < 0)
         return -1;
     
-    return rb_find_mapping(m->rb_tree, pos, direction);
+    return RBTFindMapping(m->rb_tree, pos, direction);
 }
 
 void MAGICdestroy(MAGIC m){
