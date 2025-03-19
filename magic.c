@@ -6,17 +6,17 @@ typedef enum{
 } Color;
 
 typedef struct RedBlackTreeNode {
-    int pos;         // Position where the modification starts
-    int delta;       // Bytes added (+) or deleted (-)
-    int totalShift;  // Cumulative shift after modification
+    int pos; 
+    int delta; 
+    int totalShift;  
     struct RedBlackTreeNode *left, *right, *parent;
-    Color color;     // Red or Black
+    Color color;    
 } RBNode;
 
 // Structure for the Red-Black Tree
 typedef struct RedBlackTree{
-    RBNode *NIL;  // Sentinel NIL node
-    RBNode *root; // Root of the tree
+    RBNode *NIL; 
+    RBNode *root; 
 } RBTree;
 
 RBTree *RBTreeInit(void) {
@@ -41,7 +41,7 @@ RBNode *createNode(RBTree *tree, int pos, int delta) {
     node->delta = delta;
     node->totalShift = delta;
     node->left = node->right = node->parent = tree->NIL;
-    node->color = RED; // New nodes are always red initially
+    node->color = RED; 
     return node;
 }
 

@@ -67,4 +67,5 @@ int main(void) {
 /*
 gcc -Wall -pedantic -std=c11 -O3 -o test_magic_time test_magic_time.c magic.c
 ./test_magic_time
+time ./test_magic_time
 */
