@@ -8,7 +8,7 @@ typedef enum{
 typedef struct RedBlackTreeNode {
     int pos; 
     int delta; 
-    int totalShift;  
+    int lazyShift;  
     struct RedBlackTreeNode *left, *right, *parent;
     Color color;    
 } RBNode;
@@ -29,7 +29,7 @@ RBTree *RBTreeInit(void) {
     }
     tree->NIL->color = BLACK;
     tree->NIL->left = tree->NIL->right = tree->NIL->parent = NULL;
-    tree->NIL->pos = tree->NIL->delta = tree->NIL->totalShift = 0;
+    tree->NIL->pos = tree->NIL->delta = tree->NIL->lazyShift = 0;
     tree->root = tree->NIL;
     return tree;
 }
@@ -39,7 +39,7 @@ RBNode *createNode(RBTree *tree, int pos, int delta) {
     if (!node) return NULL;
     node->pos = pos;
     node->delta = delta;
-    node->totalShift = delta;
+    node->lazyShift = 0;
     node->left = node->right = node->parent = tree->NIL;
     node->color = RED; 
     return node;
@@ -120,15 +120,15 @@ void fixInsert(RBTree *tree, RBNode *z) {
     tree->root->color = BLACK;
 }
 
-void updateTotalShift(RBNode *node, RBTree *tree) {
+void updatelazyShift(RBNode *node, RBTree *tree) {
     if (node == tree->NIL) return;
 
-    node->totalShift = node->delta;
+    node->lazyShift = node->delta;
     if (node->left != tree->NIL) {
-        node->totalShift += node->left->totalShift;
+        node->lazyShift += node->left->lazyShift;
     }
     if (node->right != tree->NIL) {
-        node->totalShift += node->right->totalShift;
+        node->lazyShift += node->right->lazyShift;
     }
 }
 
@@ -142,8 +142,10 @@ void RBTreeInsert(RBTree *tree, int pos, int delta) {
     while (x != tree->NIL) {
         y = x;
         if (z->pos < x->pos) {
+            x->lazyShift += z->delta; //If the new node is lower, we update the totalShift of the current node.
             x = x->left;
         } else {
+            z->lazyShift += x->lazyShift;
             x = x->right;
         }
     }
@@ -159,7 +161,7 @@ void RBTreeInsert(RBTree *tree, int pos, int delta) {
 
     fixInsert(tree, z);
 
-    updateTotalShift(z, tree);
+    updatelazyShift(z, tree);
 }
 
 
@@ -182,13 +184,40 @@ void RBTreeDestroy(RBTree *tree) {
 int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction) {
     int shift = 0;
     RBNode *current = tree->root;
+    if(!direction){
+        while (current != tree->NIL) {// trouver un moyen de trouver le plus grand noeud, plus petit que pos
+            if (pos < current->pos) {
+                current = current->left;
+            } else {
+                shift += current->lazyShift;
+                current = current->right;
+            }
+        }
+        if(current->pos != pos){
+            if((pos - (current->pos + shift)) < 0){
+                return -1;
+            }
+            else{
+                return pos + shift;
+            }
+        }else{
+            if((pos + shift) < 0){
+                return -1;
+            }else{
+                return pos + shift;
+            }
+        }
+    }else{
+        while (current != tree->NIL) {// trouver un moyen de trouver le plus grand noeud shifter, plus petit que pos
+            if (pos < (current->pos + shift)) {
+                current = current->left;
+            } else {
+                shift += current->lazyShift;
+                current = current->right;
+            }
+        }
+        if(current->pos != pos){
 
-    while (current != tree->NIL) {
-        if (pos < current->pos) {
-            current = current->left;
-        } else {
-            shift += current->delta;
-            current = current->right;
         }
     }
 
