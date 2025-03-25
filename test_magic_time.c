@@ -25,7 +25,24 @@ void test_mapping(MAGIC m) {
     end_time = clock();    // Temps de fin
     printf("Position %d (IN->OUT) après suppression, mappée à : %d\n", pos, newPos);
     printf("Temps de mappage (IN->OUT après suppression) : %.6f secondes\n", (double)(end_time - start_time) / CLOCKS_PER_SEC);
+
+    // Test de mappage pour une position supprimée
+    pos = 15;
+    start_time = clock();  // Temps de départ
+    newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    end_time = clock();    // Temps de fin
+    printf("Position %d (IN->OUT) supprimée, mappée à : %d\n", pos, newPos);
+    printf("Temps de mappage (IN->OUT position supprimée) : %.6f secondes\n", (double)(end_time - start_time) / CLOCKS_PER_SEC);
+
+    // Test de mappage pour une position ajoutée
+    pos = 10;
+    start_time = clock();  // Temps de départ
+    newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    end_time = clock();    // Temps de fin
+    printf("Position %d (OUT->IN) ajoutée, mappée à : %d\n", pos, newPos);
+    printf("Temps de mappage (OUT->IN position ajoutée) : %.6f secondes\n", (double)(end_time - start_time) / CLOCKS_PER_SEC);
 }
+
 
 int main(void) {
     MAGIC m = MAGICinit();
