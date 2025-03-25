@@ -120,6 +120,18 @@ void fixInsert(RBTree *tree, RBNode *z) {
     tree->root->color = BLACK;
 }
 
+void updateTotalShift(RBNode *node, RBTree *tree) {
+    if (node == tree->NIL) return;
+
+    node->totalShift = node->delta;
+    if (node->left != tree->NIL) {
+        node->totalShift += node->left->totalShift;
+    }
+    if (node->right != tree->NIL) {
+        node->totalShift += node->right->totalShift;
+    }
+}
+
 void RBTreeInsert(RBTree *tree, int pos, int delta) {
     RBNode *z = createNode(tree, pos, delta);
     if (!z) return;
@@ -146,7 +158,10 @@ void RBTreeInsert(RBTree *tree, int pos, int delta) {
     }
 
     fixInsert(tree, z);
+
+    updateTotalShift(z, tree);
 }
+
 
 void RBTreeFreeNodes(RBTree *tree, RBNode *node) {
     if (node != tree->NIL) {
