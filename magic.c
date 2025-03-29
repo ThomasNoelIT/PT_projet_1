@@ -61,7 +61,11 @@ void leftRotate(RBTree *tree, RBNode *x) {
     }
     y->left = x;
     x->parent = y;
-    y->lazyShift += y->left->lazyShift;
+
+    // ✅ Mise à jour correcte des lazyShift après rotation
+    y->lazyShift = x->lazyShift;
+    x->lazyShift = (x->left != tree->NIL ? x->left->lazyShift : 0) + 
+                   (x->right != tree->NIL ? x->right->lazyShift : 0) + x->delta;
 }
 
 void rightRotate(RBTree *tree, RBNode *y) {
@@ -80,7 +84,11 @@ void rightRotate(RBTree *tree, RBNode *y) {
     }
     x->right = y;
     y->parent = x;
-    y->lazyShift -= y->parent->lazyShift;
+
+    // ✅ Mise à jour correcte des lazyShift après rotation
+    x->lazyShift = y->lazyShift;
+    y->lazyShift = (y->left != tree->NIL ? y->left->lazyShift : 0) + 
+                   (y->right != tree->NIL ? y->right->lazyShift : 0) + y->delta;
 }
 
 void fixInsert(RBTree *tree, RBNode *z) {
@@ -144,7 +152,7 @@ void RBTreeInsert(RBTree *tree, int pos, int delta) {
     while (x != tree->NIL) {
         y = x;
         if (z->pos < x->pos) {
-            x->lazyShift += z->delta; //If the new node is lower, we update the totalShift of the current node.
+            x->lazyShift += z->delta; // ✅ Mise à jour correcte
             x = x->left;
         } else {
             x = x->right;
@@ -162,10 +170,60 @@ void RBTreeInsert(RBTree *tree, int pos, int delta) {
 
     fixInsert(tree, z);
 
-    updatelazyShift(z, tree);
+    // ✅ Mise à jour correcte de tout l'arbre
+    updatelazyShift(tree->root, tree);
 }
 
+int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction) {
+    int shift = 0;
+    RBNode *current = tree->root;
+    RBNode *candidate = NULL;
 
+    if (!direction) {  
+        // 🔹 Trouver la position actuelle de l'élément initialement en `pos`
+        while (current != tree->NIL) {
+            if (pos < current->pos) {
+                current = current->left;
+            } else {
+                candidate = current;
+                shift += current->lazyShift;
+                current = current->right;
+            }
+        }
+
+        if (candidate) {
+            int newPos = candidate->pos + shift;
+            return (newPos >= 0) ? newPos : -1;  
+        } else {
+            return -1;
+        }
+
+    } else {  
+        // 🔹 Trouver l'origine d'un élément actuellement à `pos`
+        shift = 0;
+        current = tree->root;
+        candidate = NULL;
+
+        while (current != tree->NIL) {
+            int adjustedPos = current->pos + shift;
+
+            if (pos < adjustedPos) {
+                current = current->left;
+            } else {
+                candidate = current;
+                shift += current->lazyShift;
+                current = current->right;
+            }
+        }
+
+        if (candidate) {
+            int originalPos = pos - shift;
+            return (originalPos >= 0) ? originalPos : -1;
+        } else {
+            return -1;
+        }
+    }
+}
 void RBTreeFreeNodes(RBTree *tree, RBNode *node) {
     if (node != tree->NIL) {
         RBTreeFreeNodes(tree, node->left);
@@ -181,53 +239,6 @@ void RBTreeDestroy(RBTree *tree) {
     free(tree->NIL);
     free(tree);
 }
-
-int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction) {
-    int shift = 0;
-    RBNode *current = tree->root;
-    RBNode *candidate = NULL; // Garde le plus grand nœud plus petit que pos
-
-    if (!direction) {  // 🔹 Trouver la position actuelle de l'élément initialement en `pos`
-        while (current != tree->NIL) {
-            if (pos < current->pos) {
-                current = current->left;
-            } else {
-                candidate = current; // Mémoriser le plus grand nœud plus petit que `pos`
-                shift += current->lazyShift;
-                current = current->right;
-            }
-        }
-
-        if (candidate) {
-            int newPos = candidate->pos + shift;
-            return (newPos >= 0) ? newPos : -1;  // Vérification suppression
-        } else {
-            return -1; // Aucun nœud plus petit trouvé => supprimé
-        }
-
-    } else {  // 🔹 Trouver l'origine d'un élément actuellement à `pos`
-        while (current != tree->NIL) {
-            int adjustedPos = current->pos + shift; // Position réelle du nœud
-
-            if (pos < adjustedPos) {
-                current = current->left;
-            } else {
-                candidate = current; // Mémoriser le plus grand nœud dont pos actuelle <= `pos`
-                shift += current->lazyShift;
-                current = current->right;
-            }
-        }
-
-        if (candidate) {
-            int originalPos = pos - shift;
-            return (originalPos >= 0) ? originalPos : -1;  // Vérification validité
-        } else {
-            return -1; // Aucun nœud correspondant trouvé
-        }
-    }
-}
-
-
 
 
 
