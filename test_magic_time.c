@@ -2,47 +2,55 @@
 #include <time.h>
 #include "magic.h"
 
-void test_mapping(MAGIC m) {
-    // Test de mappage avec des positions existantes dans le flux
-    int pos = 18;
-    clock_t start_time = clock();  // Temps de départ
-    int newPos = MAGICmap(m, STREAM_IN_OUT, pos);
-    clock_t end_time = clock();    // Temps de fin
-    printf("Position %d (IN->OUT) est mappée à : %d\n", pos, newPos);
-    printf("Temps de mappage (IN->OUT) : %.6f secondes\n", (double)(end_time - start_time) / CLOCKS_PER_SEC);
+void test_insertion_deletion(MAGIC m) {
+    printf("\nTest d'insertion et suppression successives :\n");
+    
+    // Insertion de valeurs successives
+    MAGICadd(m, 10, 5);
+    MAGICadd(m, 20, 3);
+    MAGICadd(m, 5, 2);
+    MAGICadd(m, 15, 4);
+    MAGICadd(m, 30, 6);
+    MAGICadd(m, 25, 1);
+    MAGICadd(m, 35, 7);
 
-    pos = 22;
-    start_time = clock();  // Temps de départ
-    newPos = MAGICmap(m, STREAM_OUT_IN, pos);
-    end_time = clock();    // Temps de fin
-    printf("Position %d (OUT->IN) est mappée à : %d\n", pos, newPos);
-    printf("Temps de mappage (OUT->IN) : %.6f secondes\n", (double)(end_time - start_time) / CLOCKS_PER_SEC);
-
-    // Test de mappage pour un octet supprimé
-    pos = 4;
-    start_time = clock();  // Temps de départ
-    newPos = MAGICmap(m, STREAM_IN_OUT, pos);
-    end_time = clock();    // Temps de fin
-    printf("Position %d (IN->OUT) après suppression, mappée à : %d\n", pos, newPos);
-    printf("Temps de mappage (IN->OUT après suppression) : %.6f secondes\n", (double)(end_time - start_time) / CLOCKS_PER_SEC);
-
-    // Test de mappage pour une position supprimée
-    pos = 15;
-    start_time = clock();  // Temps de départ
-    newPos = MAGICmap(m, STREAM_IN_OUT, pos);
-    end_time = clock();    // Temps de fin
-    printf("Position %d (IN->OUT) supprimée, mappée à : %d\n", pos, newPos);
-    printf("Temps de mappage (IN->OUT position supprimée) : %.6f secondes\n", (double)(end_time - start_time) / CLOCKS_PER_SEC);
-
-    // Test de mappage pour une position ajoutée
-    pos = 10;
-    start_time = clock();  // Temps de départ
-    newPos = MAGICmap(m, STREAM_OUT_IN, pos);
-    end_time = clock();    // Temps de fin
-    printf("Position %d (OUT->IN) ajoutée, mappée à : %d\n", pos, newPos);
-    printf("Temps de mappage (OUT->IN position ajoutée) : %.6f secondes\n", (double)(end_time - start_time) / CLOCKS_PER_SEC);
+    // Suppression successives
+    MAGICremove(m, 10, 5);
+    MAGICremove(m, 20, 3);
+    MAGICremove(m, 5, 2);
+    MAGICremove(m, 15, 4);
 }
 
+void test_mapping(MAGIC m) {
+    // Test mappage avec différentes directions
+    printf("\nTest de mappage avec différentes directions :\n");
+    int pos = 10;
+    
+    printf("Test mappage (IN->OUT) pour la position %d : ", pos);
+    int newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    printf("Mappée à : %d\n", newPos);
+
+    printf("Test mappage (OUT->IN) pour la position %d : ", pos);
+    newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    printf("Mappée à : %d\n", newPos);
+}
+
+void test_edge_cases(MAGIC m) {
+    // Test des cas de bord
+    printf("\nTest des cas de bord :\n");
+
+    // Test d'insertion à la position 0
+    printf("Ajout de 5 octets à la position 0\n");
+    MAGICadd(m, 0, 5);
+
+    // Test d'insertion à une position très élevée
+    printf("Ajout de 3 octets à une position très élevée (100000)\n");
+    MAGICadd(m, 100000, 3);
+
+    // Test de suppression à une position non valide (position 50 qui n'existe pas)
+    printf("Suppression de 5 octets à la position 50\n");
+    MAGICremove(m, 50, 5);
+}
 
 int main(void) {
     MAGIC m = MAGICinit();
@@ -51,29 +59,14 @@ int main(void) {
         return 1;
     }
 
-    // Ajout de modifications
-    clock_t start_time = clock();  // Temps de départ
-    printf("\nAjout de 5 octets à la position 10\n");
-    MAGICadd(m, 10, 5);    // Ajout de 5 octets à la position 10
-    clock_t end_time = clock();    // Temps de fin
-    printf("Temps d'ajout (10, 5) : %.6f secondes\n", (double)(end_time - start_time) / CLOCKS_PER_SEC);
+    // Test d'insertion et suppression successives
+    test_insertion_deletion(m);
 
-    start_time = clock();  // Temps de départ
-    printf("Ajout de 3 octets à la position 20\n");
-    MAGICadd(m, 20, 3);    // Ajout de 3 octets à la position 20
-    end_time = clock();    // Temps de fin
-    printf("Temps d'ajout (20, 3) : %.6f secondes\n", (double)(end_time - start_time) / CLOCKS_PER_SEC);
-
-    // Suppression de modifications
-    start_time = clock();  // Temps de départ
-    printf("\nSuppression de 2 octets à la position 15\n");
-    MAGICremove(m, 15, 2); // Suppression de 2 octets à la position 15
-    end_time = clock();    // Temps de fin
-    printf("Temps de suppression (15, 2) : %.6f secondes\n", (double)(end_time - start_time) / CLOCKS_PER_SEC);
-
-    // Test de mappage
-    printf("\nTest de mappage\n");
+    // Test de mappage dans les deux directions
     test_mapping(m);
+
+    // Test des cas de bord
+    test_edge_cases(m);
 
     // Libération de la mémoire
     MAGICdestroy(m);
