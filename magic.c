@@ -192,10 +192,10 @@ int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction) {
         }
 
         if (candidate) {
-            int newPos = candidate->pos + shift;
-            return (newPos >= 0) ? newPos : -1;  
+            int newPos = pos + shift;
+            return (newPos >= 0) ? newPos : -1;
         } else {
-            return -1;
+            return pos;
         }
 
     } else {  
@@ -220,7 +220,7 @@ int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction) {
             int originalPos = pos - shift;
             return (originalPos >= 0) ? originalPos : -1;
         } else {
-            return -1;
+            return pos;
         }
     }
 }
