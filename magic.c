@@ -28,14 +28,6 @@ typedef struct RedBlackTree{
 } RBTree;
 
 
-void createDirectoryIfNeeded(void) {
-    struct stat st = {0};
-    if (stat(OUTPUT_DIR, &st) == -1) {
-        mkdir(OUTPUT_DIR, 0700);
-    }
-}
-
-
 void writeNodeToFile(RBNode *node, FILE *file, RBTree *tree) {
     if (node == tree->NIL) return;
     printf("Écriture du noeud : %d %d %s\n", node->pos, node->delta, node->color ? "RED" : "BLACK");
