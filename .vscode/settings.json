@@ -59,6 +59,8 @@
   "files.associations": {
     "*.embeddedhtml": "html",
     "*.rmd": "markdown",
-    "magic.h": "c"
+    "magic.h": "c",
+    "__node_handle": "c",
+    "stat.h": "c"
   }
 }
