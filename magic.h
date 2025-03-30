@@ -59,4 +59,5 @@ int MAGICmap(MAGIC m, MAGICDirection direction, int pos);
  */
 void MAGICdestroy(MAGIC m);
 
+
 #endif

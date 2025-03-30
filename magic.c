@@ -1,5 +1,13 @@
 #include "magic.h"
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
+
+#define OUTPUT_DIR "tree_snapshots"
+
+
+
 typedef enum{
     RED,
     BLACK
@@ -18,6 +26,41 @@ typedef struct RedBlackTree{
     RBNode *NIL; 
     RBNode *root; 
 } RBTree;
+
+
+void createDirectoryIfNeeded(void) {
+    struct stat st = {0};
+    if (stat(OUTPUT_DIR, &st) == -1) {
+        mkdir(OUTPUT_DIR, 0700);
+    }
+}
+
+
+void writeNodeToFile(RBNode *node, FILE *file, RBTree *tree) {
+    if (node == tree->NIL) return;
+    printf("Écriture du noeud : %d %d %s\n", node->pos, node->delta, node->color ? "RED" : "BLACK");
+    fprintf(file, "%d %d %s\n", node->pos, node->delta, node->color ? "RED" : "BLACK");
+    writeNodeToFile(node->left, file, tree);
+    writeNodeToFile(node->right, file, tree);
+}
+
+static int file_counter = 0; // Compteur global pour les fichiers
+void sendTreeToFile(RBTree *tree, const char *filename) {
+    char filepath[256];
+    snprintf(filepath, sizeof(filepath), "%s/%s_%d.txt", OUTPUT_DIR, filename, file_counter++);
+
+    FILE *file = fopen(filepath, "w");  // Ouverture en mode écriture
+    if (!file) {
+        perror("Erreur d'ouverture du fichier");
+        return;
+    }
+
+    writeNodeToFile(tree->root, file, tree);
+    fclose(file);
+}
+
+
+
 
 RBTree *RBTreeInit(void) {
     RBTree *tree = (RBTree*)malloc(sizeof(RBTree));
@@ -272,6 +315,9 @@ void MAGICremove(MAGIC m, int pos, int length){
 
     RBTreeInsert(m->rb_tree_in_out, pos, -length);
     RBTreeInsert(m->rb_tree_out_in, pos, -length);
+
+    printf("\nÉtat de l'arbre après retrait in_out:\n");
+    sendTreeToFile(m->rb_tree_in_out, "tree_in_out.txt");
 }
 
 void MAGICadd(MAGIC m, int pos, int length){
@@ -280,6 +326,11 @@ void MAGICadd(MAGIC m, int pos, int length){
 
     RBTreeInsert(m->rb_tree_in_out, pos, length);
     RBTreeInsert(m->rb_tree_out_in, pos, length);
+
+
+    printf("\nÉtat de l'arbre après ajout in_out:\n");
+    sendTreeToFile(m->rb_tree_in_out, "tree_in_out.txt");
+
 }
 
 int MAGICmap(MAGIC m, MAGICDirection direction, int pos){
