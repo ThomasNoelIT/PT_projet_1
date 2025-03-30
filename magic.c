@@ -74,7 +74,7 @@ RBNode *createNode(RBTree *tree, int pos, int delta) {
     if (!node) return NULL;
     node->pos = pos;
     node->delta = delta;
-    node->lazyShift = 0;
+    node->lazyShift = delta;
     node->left = node->right = node->parent = tree->NIL;
     node->color = RED; 
     return node;
@@ -106,6 +106,8 @@ void leftRotate(RBTree *tree, RBNode *x) {
 void rightRotate(RBTree *tree, RBNode *y) {
     RBNode *x = y->left;
     y->left = x->right;
+    printf("1-Le noeud %d a désormais un totalShift de %d \n", y->pos, y->lazyShift);
+    printf("2-Le noeud %d a désormais un totalShift de %d \n", x->pos, x->lazyShift);
     if (x->right != tree->NIL) {
         x->right->parent = y;
     }
@@ -124,6 +126,8 @@ void rightRotate(RBTree *tree, RBNode *y) {
     x->lazyShift = y->lazyShift;
     y->lazyShift = (y->left != tree->NIL ? y->left->lazyShift : 0) + 
                    (y->right != tree->NIL ? y->right->lazyShift : 0) + y->delta;
+    printf("Résultat : \n 1-Le noeud %d a désormais un totalShift de %d \n", x->pos, x->lazyShift);
+    printf("2-Le noeud %d a désormais un totalShift de %d \n", y->pos, y->lazyShift);
 }
 
 void fixInsert(RBTree *tree, RBNode *z) {
@@ -163,6 +167,7 @@ void fixInsert(RBTree *tree, RBNode *z) {
         }
     }
     tree->root->color = BLACK;
+    //printf("Total Shift actuel %d\n",z->lazyShift);
 }
 
 void updatelazyShift(RBNode *node, RBTree *tree) {
@@ -202,7 +207,6 @@ void RBTreeInsert(RBTree *tree, int pos, int delta) {
     } else {
         y->right = z;
     }
-
     fixInsert(tree, z);
 
     // ✅ Mise à jour correcte de tout l'arbre
@@ -213,15 +217,20 @@ int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction) {
     int shift = 0;
     RBNode *current = tree->root;
     RBNode *candidate = NULL;
-
+    printf("Noeud racine %d, noeud gauche %d, noeud droit %d, noeud gauche droit %d \n", tree->root->pos, tree->root->left->pos, tree->root->right->pos, tree->root->right->left->pos);
+    printf("Noeud racine totalShift %d, noeud gauche TotalShift %d, noeud droit totalShift %d, noeud gauche droit totalShift%d", tree->root->lazyShift, tree->root->left->lazyShift, tree->root->right->lazyShift, tree->root->right->left->lazyShift);
+    //printf("Noeud cherché %d", pos);
+    //printf("Noeud candidat %d  et décalage total de %d\n", current->pos, shift);
     if (!direction) {  
         // 🔹 Trouver la position actuelle de l'élément initialement en `pos`
         while (current != tree->NIL) {
             if (pos < current->pos) {
                 current = current->left;
+                //printf("Noeud candidat %d  et décalage total de %d\n", current->pos, shift);
             } else {
                 candidate = current;
                 shift += current->lazyShift;
+                //printf("Noeud candidat %d  et décalage total de %d\n", candidate->pos, shift);
                 current = current->right;
             }
         }
@@ -244,16 +253,19 @@ int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction) {
 
             if (pos < adjustedPos) {
                 current = current->left;
+                //printf("Noeud candidat %d  et décalage total de %d\n", current->pos, shift);
             } else {
                 candidate = current;
                 shift += current->lazyShift;
+                //printf("Noeud candidat %d  et décalage total de %d\n", candidate->pos, shift);
                 current = current->right;
             }
         }
 
         if (candidate) {
             int originalPos = pos - shift;
-            return (originalPos >= 0) ? originalPos : -1;
+            return (originalPos >= 0) ? 
+            originalPos : -1;
         } else {
             return pos;
         }
