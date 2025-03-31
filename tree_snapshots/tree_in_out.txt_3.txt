@@ -1,0 +1,4 @@
+15 -2 RED
+10 5 RED
+20 3 RED
+25 -2 BLACK

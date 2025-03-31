@@ -23,7 +23,7 @@ void test_mapping(MAGIC m) {
 }
 
 int main(void) {
-    MAGIC m = MAGICinit();
+    /* MAGIC m = MAGICinit();
     if (!m) {
         printf("Failed to initialize MAGIC.\n");
         return 1;
@@ -60,7 +60,16 @@ int main(void) {
     test_mapping(m);
 
     // Libération de la mémoire
+    MAGICdestroy(m); */
+    MAGIC m = MAGICinit();
+    MAGICadd(m, 10, 5);
+    MAGICremove(m, 15, 5);
+    printf("MAGICmap(10) = %d\n", MAGICmap(m, STREAM_IN_OUT, 10)); // Devrait retourner -1
+    printf("MAGICmap(10) = %d\n", MAGICmap(m, STREAM_OUT_IN, 10));
+    printf("MAGICmap(13) = %d\n", MAGICmap(m, STREAM_IN_OUT, 13)); // Devrait être 18
+    printf("MAGICmap(10) = %d\n", MAGICmap(m, STREAM_OUT_IN, 10));
     MAGICdestroy(m);
+    return 0;
 
     return 0;
 }

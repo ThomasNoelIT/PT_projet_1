@@ -7,7 +7,6 @@
 #define OUTPUT_DIR "tree_snapshots"
 
 
-
 typedef enum{
     RED,
     BLACK
@@ -26,33 +25,6 @@ typedef struct RedBlackTree{
     RBNode *NIL; 
     RBNode *root; 
 } RBTree;
-
-
-void writeNodeToFile(RBNode *node, FILE *file, RBTree *tree) {
-    if (node == tree->NIL) return;
-    printf("Écriture du noeud : %d %d %s\n", node->pos, node->delta, node->color ? "RED" : "BLACK");
-    fprintf(file, "%d %d %s\n", node->pos, node->delta, node->color ? "RED" : "BLACK");
-    writeNodeToFile(node->left, file, tree);
-    writeNodeToFile(node->right, file, tree);
-}
-
-static int file_counter = 0; // Compteur global pour les fichiers
-void sendTreeToFile(RBTree *tree, const char *filename) {
-    char filepath[256];
-    snprintf(filepath, sizeof(filepath), "%s/%s_%d.txt", OUTPUT_DIR, filename, file_counter++);
-
-    FILE *file = fopen(filepath, "w");  // Ouverture en mode écriture
-    if (!file) {
-        perror("Erreur d'ouverture du fichier");
-        return;
-    }
-
-    writeNodeToFile(tree->root, file, tree);
-    fclose(file);
-}
-
-
-
 
 RBTree *RBTreeInit(void) {
     RBTree *tree = (RBTree*)malloc(sizeof(RBTree));
@@ -106,8 +78,8 @@ void leftRotate(RBTree *tree, RBNode *x) {
 void rightRotate(RBTree *tree, RBNode *y) {
     RBNode *x = y->left;
     y->left = x->right;
-    printf("1-Le noeud %d a désormais un totalShift de %d \n", y->pos, y->lazyShift);
-    printf("2-Le noeud %d a désormais un totalShift de %d \n", x->pos, x->lazyShift);
+    //printf("1-Le noeud %d a désormais un totalShift de %d \n", y->pos, y->lazyShift);
+    //printf("2-Le noeud %d a désormais un totalShift de %d \n", x->pos, x->lazyShift);
     if (x->right != tree->NIL) {
         x->right->parent = y;
     }
@@ -126,8 +98,8 @@ void rightRotate(RBTree *tree, RBNode *y) {
     x->lazyShift = y->lazyShift;
     y->lazyShift = (y->left != tree->NIL ? y->left->lazyShift : 0) + 
                    (y->right != tree->NIL ? y->right->lazyShift : 0) + y->delta;
-    printf("Résultat : \n 1-Le noeud %d a désormais un totalShift de %d \n", x->pos, x->lazyShift);
-    printf("2-Le noeud %d a désormais un totalShift de %d \n", y->pos, y->lazyShift);
+    //printf("Résultat : \n 1-Le noeud %d a désormais un totalShift de %d \n", x->pos, x->lazyShift);
+    //printf("2-Le noeud %d a désormais un totalShift de %d \n", y->pos, y->lazyShift);
 }
 
 void fixInsert(RBTree *tree, RBNode *z) {
@@ -182,6 +154,26 @@ void updatelazyShift(RBNode *node, RBTree *tree) {
     }
 }
 
+void printTreeHelper(RBNode *node, RBTree *tree, int depth) {
+    if (node == tree->NIL) return;
+
+    printTreeHelper(node->right, tree, depth + 1); // Affiche le sous-arbre droit
+
+    for (int i = 0; i < depth; i++) {
+        printf("   "); // Indentation pour afficher la hiérarchie
+    }
+
+    printf("%d (%d, %s)\n", node->pos, node->lazyShift, node->color == RED ? "R" : "B");
+
+    printTreeHelper(node->left, tree, depth + 1); // Affiche le sous-arbre gauche
+}
+
+void printTree(RBTree *tree) {
+    printf("\n===== ARBRE ROUGE-NOIR =====\n");
+    printTreeHelper(tree->root, tree, 0);
+    printf("============================\n");
+}
+
 void RBTreeInsert(RBTree *tree, int pos, int delta) {
     RBNode *z = createNode(tree, pos, delta);
     if (!z) return;
@@ -207,8 +199,9 @@ void RBTreeInsert(RBTree *tree, int pos, int delta) {
     } else {
         y->right = z;
     }
+    //printTree(tree);
     fixInsert(tree, z);
-
+    //printTree(tree); 
     // ✅ Mise à jour correcte de tout l'arbre
     updatelazyShift(tree->root, tree);
 }
@@ -217,8 +210,8 @@ int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction) {
     int shift = 0;
     RBNode *current = tree->root;
     RBNode *candidate = NULL;
-    printf("Noeud racine %d, noeud gauche %d, noeud droit %d, noeud gauche droit %d \n", tree->root->pos, tree->root->left->pos, tree->root->right->pos, tree->root->right->left->pos);
-    printf("Noeud racine totalShift %d, noeud gauche TotalShift %d, noeud droit totalShift %d, noeud gauche droit totalShift%d", tree->root->lazyShift, tree->root->left->lazyShift, tree->root->right->lazyShift, tree->root->right->left->lazyShift);
+    //printf("Noeud racine %d, noeud gauche %d, noeud droit %d, noeud gauche droit %d \n", tree->root->pos, tree->root->left->pos, tree->root->right->pos, tree->root->right->left->pos);
+    //printf("Noeud racine totalShift %d, noeud gauche TotalShift %d, noeud droit totalShift %d, noeud gauche droit totalShift%d", tree->root->lazyShift, tree->root->left->lazyShift, tree->root->right->lazyShift, tree->root->right->left->lazyShift);
     //printf("Noeud cherché %d", pos);
     //printf("Noeud candidat %d  et décalage total de %d\n", current->pos, shift);
     if (!direction) {  
@@ -355,3 +348,5 @@ void MAGICdestroy(MAGIC m){
     RBTreeDestroy(m->rb_tree_out_in);
     free(m);
 }
+
+

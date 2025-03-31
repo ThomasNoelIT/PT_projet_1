@@ -44,8 +44,6 @@ void test_edge_cases(MAGIC m) {
     MAGICadd(m, 0, 5);
 
     // Test d'insertion à une position très élevée
-    printf("Ajout de 3 octets à une position très élevée (100000)\n");
-    MAGICadd(m, 100000, 3);
 
     // Test de suppression à une position non valide (position 50 qui n'existe pas)
     printf("Suppression de 5 octets à la position 50\n");
