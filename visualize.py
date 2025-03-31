@@ -8,57 +8,53 @@ FOLDER_NAME = "tree_snapshots"
 FILE_PATTERN = os.path.join(FOLDER_NAME, "tree_*.txt")
 
 def read_tree_from_file(filename):
-    """Lit l'arbre stocké dans un fichier et renvoie un dictionnaire {pos: (delta, color, left, right)}."""
-    tree = {}
-
+    """Lit l'arbre stocké dans un fichier et renvoie une liste de tuples (pos, delta, lazyShift, color)."""
+    tree = []
     try:
         with open(filename, "r") as file:
-            for line in file:
+            lines = file.readlines()
+            for line in lines:
                 parts = line.strip().split()
-                pos, delta, color = int(parts[0]), int(parts[1]), parts[2]
-                left = None
-                right = None
-
-                if len(parts) > 3:
-                    for child in parts[3:]:
-                        if child.startswith("L"):
-                            left = int(child[1:])
-                        elif child.startswith("R"):
-                            right = int(child[1:])
-
-                tree[pos] = (delta, color, left, right)
+                if len(parts) == 4:  # Maintenant 4 éléments par ligne
+                    pos, delta, lazyShift, color = int(parts[0]), int(parts[1]), int(parts[2]), parts[3]
+                    tree.append((pos, delta, lazyShift, color))  # Ajoute lazyShift
     except FileNotFoundError:
         print(f"Le fichier {filename} n'existe pas encore.")
-
     return tree
 
 
 def draw_tree(tree):
-    """Dessine l'arbre Red-Black en utilisant les vraies relations parent-enfant."""
+    """Dessine l'arbre Red-Black en utilisant NetworkX et Matplotlib."""
     if not tree:
         print("Aucun nœud à afficher.")
         return
-
+    
     G = nx.DiGraph()
 
-    # Ajouter les nœuds et leurs couleurs
-    for pos, (delta, color, left, right) in tree.items():
-        G.add_node(pos, color=color, label=f"{pos}\nΔ{delta}")
+    # Ajouter les nœuds avec leurs couleurs
+    for pos, delta, lazyShift, color in tree:
+        G.add_node(pos, color=color, label=f"pos: {pos}\nΔ: {delta}\nLS: {lazyShift}")  # Affiche lazyShift
 
-        # Ajouter les vraies relations parent-enfant
-        if left is not None:
-            G.add_edge(pos, left)
-        if right is not None:
-            G.add_edge(pos, right)
+    # Simuler des relations entre nœuds (à adapter si besoin)
+    sorted_nodes = sorted(tree, key=lambda x: x[0])  # Trier par pos
+    parent_map = {}  # Dictionnaire pour lier parent/enfant
 
-    # Placement automatique des nœuds
-    pos_map = nx.spring_layout(G)  # Positionnement basé sur les liens
+    for i, (pos, delta, lazyShift, color) in enumerate(sorted_nodes):
+        if i == 0:
+            parent_map[pos] = None  # La racine n'a pas de parent
+        else:
+            parent = sorted_nodes[(i - 1) // 2][0]  # Simulation parent/enfant
+            parent_map[pos] = parent
+            G.add_edge(parent, pos)
+
+    # Définir les positions et couleurs des nœuds
+    pos_map = {node: (node, -depth) for depth, (node, _, _, _) in enumerate(tree)}  # Inclut lazyShift
     colors = ["red" if G.nodes[n]["color"] == "RED" else "black" for n in G.nodes]
 
-    # Affichage
+    # Affichage avec une taille de nœud plus grande
     plt.figure(figsize=(10, 6))
     nx.draw(G, pos=pos_map, with_labels=True, labels=nx.get_node_attributes(G, 'label'),
-            node_color=colors, node_size=800, font_size=10, font_color="white", edge_color="gray")
+            node_color=colors, node_size=2000, font_size=10, font_color="white", edge_color="gray")
     plt.show()
 
 

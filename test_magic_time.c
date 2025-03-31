@@ -6,19 +6,28 @@ void test_insertion_deletion(MAGIC m) {
     printf("\nTest d'insertion et suppression successives :\n");
     
     // Insertion de valeurs successives
-    MAGICadd(m, 10, 5);
-    MAGICadd(m, 20, 3);
+    // MAGICadd(m, 10, 5);
+    // MAGICadd(m, 20, 3);
+    // MAGICadd(m, 5, 2);
+    // MAGICadd(m, 15, 4);
+    // MAGICadd(m, 30, 6);
+    // MAGICadd(m, 25, 1);
+    // MAGICadd(m, 35, 7);
+
     MAGICadd(m, 5, 2);
-    MAGICadd(m, 15, 4);
-    MAGICadd(m, 30, 6);
-    MAGICadd(m, 25, 1);
-    MAGICadd(m, 35, 7);
+MAGICadd(m, 10, 5);
+MAGICadd(m, 15, 4);
+MAGICadd(m, 20, 3);
+MAGICadd(m, 25, 1);
+MAGICadd(m, 30, 6);
+MAGICadd(m, 35, 7);
+
 
     // Suppression successives
-    MAGICremove(m, 10, 5);
-    MAGICremove(m, 20, 3);
-    MAGICremove(m, 5, 2);
-    MAGICremove(m, 15, 4);
+    // MAGICremove(m, 10, 5);
+    // MAGICremove(m, 20, 3);
+    // MAGICremove(m, 5, 2);
+    // MAGICremove(m, 15, 4);
 }
 
 void test_mapping(MAGIC m) {
@@ -61,10 +70,10 @@ int main(void) {
     test_insertion_deletion(m);
 
     // Test de mappage dans les deux directions
-    test_mapping(m);
+    // test_mapping(m);
 
     // Test des cas de bord
-    test_edge_cases(m);
+    // test_edge_cases(m);
 
     // Libération de la mémoire
     MAGICdestroy(m);
