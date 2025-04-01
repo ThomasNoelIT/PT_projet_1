@@ -247,17 +247,24 @@ int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction) {
 
     } else {  
         // 🔹 Trouver l'origine d'un élément actuellement à `pos`
-        shift = 0;
         current = tree->root;
+        shift = 0;
         candidate = NULL;
-
+        //printf("Ah\n");
         while (current != tree->NIL) {
             int adjustedPos = current->pos + shift;
 
             if (pos < adjustedPos) {
+                if(current->pos < pos){
+                    candidate = current;
+                    shift += current->lazyShift;
+                }
+                // candidate = current;
+                // shift += current->lazyShift;
                 current = current->left;
                 //printf("Noeud candidat %d  et décalage total de %d\n", current->pos, shift);
             } else {
+                printf("Ah\n");
                 candidate = current;
                 shift += current->lazyShift;
                 //printf("Noeud candidat %d  et décalage total de %d\n", candidate->pos, shift);
@@ -267,6 +274,7 @@ int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction) {
 
         if (candidate) {
             int originalPos = pos - shift;
+            //printf("Position d'origine : %d \n", originalPos);
             return (originalPos >= 0) ? 
             originalPos : -1;
         } else {
@@ -699,7 +707,7 @@ int MAGICmap(MAGIC m, MAGICDirection direction, int pos){
     if (direction == STREAM_IN_OUT)
         return RBTreeFindMapping(m->rb_tree_in_out, pos, direction);
     else
-        return RBTreeFindMapping(m->rb_tree_out_in, pos, direction);
+        return RBTreeFindMapping(m->rb_tree_in_out, pos, direction);
 }
 
 void MAGICdestroy(MAGIC m){
