@@ -23,7 +23,7 @@ void test_mapping(MAGIC m) {
 }
 
 int main(void) {
-    /* MAGIC m = MAGICinit();
+    MAGIC m = MAGICinit();
     if (!m) {
         printf("Failed to initialize MAGIC.\n");
         return 1;
@@ -51,6 +51,7 @@ int main(void) {
 
     // Test de suppression d'octets à la fin du flux
     printf("\nSuppression d'octets a la fin du flux\n");
+    printf("\nSuppression de 2 octets a la position 25\n");
     MAGICremove(m, 25, 2); // Suppression à la fin
     test_mapping(m);
 
@@ -59,8 +60,8 @@ int main(void) {
     MAGICadd(m, 5, 4);
     test_mapping(m);
 
-    // Libération de la mémoire
-    MAGICdestroy(m); */
+    /* // Libération de la mémoire
+    MAGICdestroy(m);
     MAGIC m = MAGICinit();
     MAGICadd(m, 10, 5);
     MAGICremove(m, 15, 5);
@@ -69,7 +70,7 @@ int main(void) {
     printf("MAGICmap(13) = %d\n", MAGICmap(m, STREAM_IN_OUT, 13)); // Devrait être 18
     printf("MAGICmap(10) = %d\n", MAGICmap(m, STREAM_OUT_IN, 10));
     MAGICdestroy(m);
-    return 0;
+    return 0; */
 
     return 0;
 }
