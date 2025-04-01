@@ -97,7 +97,6 @@ void leftRotate(RBTree *tree, RBNode *x) {
     x->parent = y;
 
     // ✅ Mise à jour correcte des lazyShift après rotation
-    // x->lazyShift = x->delta + (x->left != tree->NIL ? x->left->lazyShift : 0);
     y->lazyShift += x->lazyShift; //parent
 }
 
