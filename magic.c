@@ -212,29 +212,47 @@ void RBTreeInsert(RBTree *tree, int pos, int delta, int timestamp) {
     } else {
         y->right = z;
     }
-    printTree(tree);
+    //printTree(tree);
     fixInsert(tree, z);
-    printTree(tree);
+    //printTree(tree);
 }
+
+RBNode* findDeleteNode(RBTree *tree, int pos) {
+    RBNode *current = tree->root;
+    while (current != tree->NIL) {
+        if (pos < current->pos) {
+            current = current->left;
+        } else if (pos > current->pos) {
+            current = current->right;
+        } else {
+            return current;  // On a trouvé le nœud
+        }
+    }
+    return NULL;  // Aucun nœud trouvé
+}
+
 
 int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction) {
     int shift = 0;
     RBNode *current = tree->root;
     RBNode *candidate = NULL;
-    //printf("Noeud racine %d, noeud gauche %d, noeud droit %d, noeud gauche droit %d \n", tree->root->pos, tree->root->left->pos, tree->root->right->pos, tree->root->right->left->pos);
-    //printf("Noeud racine totalShift %d, noeud gauche TotalShift %d, noeud droit totalShift %d, noeud gauche droit totalShift%d", tree->root->lazyShift, tree->root->left->lazyShift, tree->root->right->lazyShift, tree->root->right->left->lazyShift);
-    //printf("Noeud cherché %d", pos);
-    //printf("Noeud candidat %d  et décalage total de %d\n", current->pos, shift);
+
+    // Si la direction est STREAM_IN_OUT, on cherche la position actuelle
     if (!direction) {  
-        // 🔹 Trouver la position actuelle de l'élément initialement en `pos`
         while (current != tree->NIL) {
             if (pos < current->pos) {
                 current = current->left;
-                //printf("Noeud candidat %d  et décalage total de %d\n", current->pos, shift);
             } else {
                 candidate = current;
                 shift += current->lazyShift;
-                //printf("Noeud candidat %d  et décalage total de %d\n", candidate->pos, shift);
+
+                // Vérifier si ce nœud a été supprimé après le décalage
+                RBNode *deleteNode = findDeleteNode(tree, candidate->pos);
+                if (deleteNode && deleteNode->timestamp > candidate->timestamp) {
+                    // La suppression est plus récente que le décalage, annuler le décalage
+                    shift = 0;  // Annuler l'impact du décalage
+                }
+
                 current = current->right;
             }
         }
@@ -246,37 +264,38 @@ int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction) {
             return pos;
         }
 
-    } else {  
-        // 🔹 Trouver l'origine d'un élément actuellement à `pos`
+    } else {  // Si la direction est inverse, chercher l'origine de l'élément
         current = tree->root;
         shift = 0;
         candidate = NULL;
-        //printf("Ah\n");
+
         while (current != tree->NIL) {
             int adjustedPos = current->pos + shift;
 
             if (pos < adjustedPos) {
-                if(current->pos < pos){
+                if (current->pos < pos) {
                     candidate = current;
                     shift += current->lazyShift;
                 }
-                // candidate = current;
-                // shift += current->lazyShift;
                 current = current->left;
-                //printf("Noeud candidat %d  et décalage total de %d\n", current->pos, shift);
             } else {
                 candidate = current;
                 shift += current->lazyShift;
-                //printf("Noeud candidat %d  et décalage total de %d\n", candidate->pos, shift);
+
+                // Vérifier si ce nœud a été supprimé après le décalage
+                RBNode *deleteNode = findDeleteNode(tree, candidate->pos);
+                if (deleteNode && deleteNode->timestamp > candidate->timestamp) {
+                    // La suppression est plus récente que le décalage, annuler le décalage
+                    shift = 0;  // Annuler l'impact du décalage
+                }
+
                 current = current->right;
             }
         }
 
         if (candidate) {
             int originalPos = pos - shift;
-            //printf("Position d'origine : %d \n", originalPos);
-            return (originalPos >= 0) ? 
-            originalPos : -1;
+            return (originalPos >= 0) ? originalPos : -1;
         } else {
             return pos;
         }
@@ -304,6 +323,13 @@ struct magic{
     int timestamp;      // Compteur global de timestamp
 };
 
+// Variable globale pour le timestamp
+static long global_timestamp = 0;
+
+void incrementTimestamp() {
+    global_timestamp++;
+}
+
 MAGIC MAGICinit(void){
     MAGIC m = (MAGIC)malloc(sizeof(struct magic));
     if (!m)
@@ -318,21 +344,33 @@ MAGIC MAGICinit(void){
     return m;
 }
 
-void MAGICremove(MAGIC m, int pos, int length){
-    if (!m || length <= 0)
-        return;
+// Mise à jour du code MAGICremove
+void MAGICremove(MAGIC m, int pos, int length) {
+    if (!m || length <= 0) return;
 
-    m->timestamp++;
-    RBTreeInsert(m->deleteTree, pos, -length, m->timestamp);
-    RBTreeInsert(m->shiftTree, pos + length, -length, m->timestamp);
+    incrementTimestamp();  // Incrémentation du timestamp à chaque modification
+
+    // Insérer dans deleteTree pour marquer la suppression
+    RBTreeInsert(m->deleteTree, pos, -length, global_timestamp);
+    
+    // Ajouter un signal dans le shiftTree pour décaler les éléments plus grands
+    RBTreeInsert(m->shiftTree, pos, -length, global_timestamp);
+    
+    // printf("Suppression dans deleteTree avec timestamp %ld\n", global_timestamp);
 }
 
-void MAGICadd(MAGIC m, int pos, int length){
-    if (!m || length <= 0)
-        return;
+// Mise à jour du code MAGICadd
+void MAGICadd(MAGIC m, int pos, int length) {
+    if (!m || length <= 0) return;
 
-    m->timestamp++;
-    RBTreeInsert(m->shiftTree, pos, length, m->timestamp);
+    incrementTimestamp();  // Incrémentation du timestamp à chaque modification
+
+    // Insérer dans le shiftTree avec le timestamp actuel
+    RBTreeInsert(m->shiftTree, pos, length, global_timestamp);
+    // Pas de modification dans deleteTree pour l'ajout
+
+    // Enregistrer l'ajout dans le shiftTree
+    // printf("Ajout dans shiftTree avec timestamp %ld\n", global_timestamp);
 }
 
 int MAGICmap(MAGIC m, MAGICDirection direction, int pos){
