@@ -95,7 +95,7 @@ void leftRotate(RBTree *tree, RBNode *x) {
     x->parent = y;
 
     // ✅ Mise à jour correcte des lazyShift après rotation
-    x->lazyShift = x->delta + (x->left != tree->NIL ? x->left->lazyShift : 0);
+    // x->lazyShift = x->delta + (x->left != tree->NIL ? x->left->lazyShift : 0);
     y->lazyShift += x->lazyShift; //parent
 }
 
@@ -264,7 +264,7 @@ int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction) {
                 current = current->left;
                 //printf("Noeud candidat %d  et décalage total de %d\n", current->pos, shift);
             } else {
-                printf("Ah\n");
+                // printf("Ah\n");
                 candidate = current;
                 shift += current->lazyShift;
                 //printf("Noeud candidat %d  et décalage total de %d\n", candidate->pos, shift);
