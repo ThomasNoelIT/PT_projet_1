@@ -7,9 +7,9 @@ void test_mapping(MAGIC m) {
     int newPos = MAGICmap(m, STREAM_IN_OUT, pos);
     printf("Position %d (IN->OUT) est mappee a : %d\n", pos, newPos);
 
-    pos = 2;
-    newPos = MAGICmap(m, STREAM_OUT_IN, pos);
-    printf("Position %d (OUT->IN) est mappee a : %d\n", pos, newPos);
+    // pos = 2;
+    // newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // printf("Position %d (OUT->IN) est mappee a : %d\n", pos, newPos);
 
     // Test de mappage pour un octet supprimé
     pos = 2;
@@ -64,41 +64,125 @@ int main(void) {
     // MAGICadd(m, 5, 4);
     // test_mapping(m);
 
+    // Mixte overlap
     // printf("Ajout de 2 octets à la position 4 \n");
     // MAGICadd(m, 4, 2);
-    // int pos = 4;
-    // int newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // int pos = 3;
+    // int newPos = MAGICmap(m, STREAM_IN_OUT, pos);
     // printf("Position %d (IN->OUT) est mappee a : %d\n", pos, newPos);
-    // pos = 5;
-    // newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // pos = 4;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
     // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
 
     // // Test de mappage pour un octet ajouté
-    // pos = 6;
-    // newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // pos = 5;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
     // printf("Position %d (IN->OUT) après ajout, mappee a : %d\n", pos, newPos);
 
-    // pos = 7;
-    // newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // pos = 6;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
     // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
     // printf("Suppression de 2 octet à la position 6\n");
     // MAGICremove(m, 6, 2);
 
     // pos = 4;
-    // newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
     // printf("Position %d (IN->OUT) est mappee a : %d\n", pos, newPos);
 
     // pos = 5;
-    // newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
+
+    // pos = 6;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
+
+    // pos = 7;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
+
+    //remove test
+    // MAGICremove(m, 3, 2);
+    // printf("Suppression de 2 octet à la position 3\n");
+    // int pos = 0;
+    // int newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) est mappee a : %d\n", pos, newPos);
+    // pos = 1;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
     // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
 
     // // Test de mappage pour un octet ajouté
-    // pos = 6;
-    // newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // pos = 2;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
     // printf("Position %d (IN->OUT) après ajout, mappee a : %d\n", pos, newPos);
 
-    // pos = 7;
-    // newPos = MAGICmap(m,STREAM_OUT_IN, pos);
+    // pos = 3;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
+
+    // pos = 4;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après ajout, mappee a : %d\n", pos, newPos);
+
+    // pos = 5;
+    // newPos = MAGICmap(m,STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
+    // printf("Suppression de 2 octet à la position 6\n");
+    // MAGICremove(m, 6, 1);
+    // printf("Suppression de 1 octet à la position 6\n");
+    // pos = 0;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) est mappee a : %d\n", pos, newPos);
+    // pos = 1;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
+
+    // // Test de mappage pour un octet ajouté
+    // pos = 2;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après ajout, mappee a : %d\n", pos, newPos);
+
+    // pos = 3;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
+
+    // pos = 4;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après ajout, mappee a : %d\n", pos, newPos);
+
+    // pos = 5;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
+    // printf("Suppression de 2 octet à la position 6\n");
+    // MAGICremove(m, 8, 2);
+    // printf("Suppression de 2 octet à la position 8\n");
+    // pos = 0;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) est mappee a : %d\n", pos, newPos);
+    // pos = 1;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
+
+    // // Test de mappage pour un octet ajouté
+    // pos = 2;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après ajout, mappee a : %d\n", pos, newPos);
+
+    // pos = 3;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
+
+    // pos = 4;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après ajout, mappee a : %d\n", pos, newPos);
+
+    // pos = 5;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
+    // printf("Suppression de 2 octet à la position 6\n");
+
+    // pos = 6;
+    // newPos = MAGICmap(m, STREAM_IN_OUT, pos);
     // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
 
     test_mapping(m);

@@ -1,5 +1,6 @@
 #include "magic.h"
 #include "stdbool.h"
+#include "stdlib.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -212,9 +213,9 @@ void RBTreeInsert(RBTree *tree, int pos, int delta, int timestamp) {
     } else {
         y->right = z;
     }
-    //printTree(tree);
+    printTree(tree);
     fixInsert(tree, z);
-    //printTree(tree);
+    printTree(tree);
 }
 
 
@@ -235,6 +236,7 @@ RBNode* findDeleteNode(RBTree *tree, int pos) {
         } else {
             return current;  // Nœud trouvé, il est supprimé
         }
+        printf("Je cherche si le noeud %d est supprimé. Pour l'instant on en est au noeud : %d \n", pos, current->pos);
     }
     return NULL;  // Aucun nœud trouvé
 }
@@ -257,15 +259,16 @@ int RBTreeFindMapping(RBTree *sTree,RBTree *dTree,  int pos, MAGICDirection dire
             }
         }
 
-        if (candidate && candidate->parent) {
+        if (candidate) {
             int newPos = pos + shift;
-            
-            // Vérifier si l'origine a été supprimée
-            RBNode *deleteNode = findDeleteNode(dTree, newPos);
-            if (deleteNode && deleteNode->timestamp > candidate->timestamp) {
-                return -1;  // La position d'origine a été supprimée
+            if(shift > 0){
+                // Vérifier si l'origine a été supprimée
+                RBNode *deleteNode = findDeleteNode(dTree, newPos);
+                if (deleteNode && deleteNode->timestamp >= candidate->timestamp) {
+                    return -1;  // La position d'origine a été supprimée
+                }
             }
-            return (newPos >= 0) ? newPos : -1;
+            return (newPos >= candidate->pos) ? newPos : -1;
         } else {
             return pos;
         }
@@ -303,7 +306,6 @@ int RBTreeFindMapping(RBTree *sTree,RBTree *dTree,  int pos, MAGICDirection dire
             if (deleteNode && deleteNode->timestamp > candidate->timestamp) {
                 return -1;  // La position d'origine a été supprimée
             }
-            printf("La position originale : %d et la position actuelle : %d \n", originalPos, pos);
             return (originalPos >= 0) ? originalPos : -1;
         } else {
             return pos;
