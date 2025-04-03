@@ -212,9 +212,9 @@ void RBTreeInsert(RBTree *tree, int pos, int delta, int timestamp) {
     } else {
         y->right = z;
     }
-    printTree(tree);
+    //printTree(tree);
     fixInsert(tree, z);
-    printTree(tree);
+    //printTree(tree);
 }
 
 
@@ -335,7 +335,7 @@ struct magic{
 // Variable globale pour le timestamp
 static long global_timestamp = 0;
 
-void incrementTimestamp() {
+void incrementTimestamp(void) {
     global_timestamp++;
 }
 
@@ -367,6 +367,8 @@ void MAGICremove(MAGIC m, int pos, int length) {
     
     // printf("Suppression dans deleteTree avec timestamp %ld\n", global_timestamp);
 }
+
+
 
 // Mise à jour du code MAGICadd
 void MAGICadd(MAGIC m, int pos, int length) {

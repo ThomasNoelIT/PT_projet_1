@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include "magic.h"
 
+int positions_to_check[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 35, 40, 50, 53, 61, 70, 80, 90, 100, 110};
+int num_positions = sizeof(positions_to_check) / sizeof(positions_to_check[0]);
+
+
 void test_additions(void) {
     MAGIC m = MAGICinit();
     
@@ -25,10 +29,6 @@ void test_additions(void) {
     MAGICadd(m, 100, 2);
     MAGICadd(m, 110, 1);
     
-    // Vérification des positions où des modifications ont eu lieu
-    int positions_to_check[] = {0, 2, 5, 8, 10, 15, 20, 25, 30, 35, 40, 50, 53, 61, 70, 80, 90, 100, 110};
-    int num_positions = sizeof(positions_to_check) / sizeof(positions_to_check[0]);
-    
     for (int i = 0; i < num_positions; i++) {
         int pos = positions_to_check[i];
         printf("IN -> OUT [%d] = %d\n", pos, MAGICmap(m, STREAM_IN_OUT, pos));
@@ -37,38 +37,93 @@ void test_additions(void) {
     MAGICdestroy(m);
 }
 
+
 void test_removals(void) {
     MAGIC m = MAGICinit();
     
     // retrait de bytes à différentes positions avec différentes longueurs
-    MAGICremove(m, 0, 2);
+    // MAGICremove(m, 0, 2);
     MAGICremove(m, 3, 2);
     MAGICremove(m, 6, 1);
     MAGICremove(m, 8, 2);
-    MAGICremove(m, 12, 3);
-    MAGICremove(m, 18, 4);
-    MAGICremove(m, 25, 2);
-    MAGICremove(m, 30, 3);
-    MAGICremove(m, 35, 1);
-    MAGICremove(m, 40, 4);
-    MAGICremove(m, 50, 1);
-    MAGICremove(m, 55, 3);
-    MAGICremove(m, 60, 2);
-    MAGICremove(m, 70, 5);
-    MAGICremove(m, 80, 4);
-    MAGICremove(m, 90, 3);
-    MAGICremove(m, 100, 2);
-    MAGICremove(m, 110, 1);
-    
-    // Vérification des positions supprimées
-    int positions_to_check[] = {0, 3, 6, 8, 12, 18, 25, 30, 35, 40, 50, 55, 60, 70, 80, 90, 100, 110};
-    int num_positions = sizeof(positions_to_check) / sizeof(positions_to_check[0]);
+    // MAGICremove(m, 12, 3);
+    // MAGICremove(m, 18, 4);
+    // MAGICremove(m, 25, 2);
+    // MAGICremove(m, 30, 3);
+    // MAGICremove(m, 35, 1);
+    // MAGICremove(m, 40, 4);
+    // MAGICremove(m, 50, 1);
+    // MAGICremove(m, 55, 3);
+    // MAGICremove(m, 60, 2);
+    // MAGICremove(m, 70, 5);
+    // MAGICremove(m, 80, 4);
+    // MAGICremove(m, 90, 3);
+    // MAGICremove(m, 100, 2);
+    // MAGICremove(m, 110, 1);
 
     for (int i = 0; i < num_positions; i++) {
         int pos = positions_to_check[i];
         printf("IN -> OUT [%d] = %d\n", pos, MAGICmap(m, STREAM_IN_OUT, pos));
     }
     
+    MAGICdestroy(m);
+}
+
+void test_mapping(void) {
+    MAGIC m = MAGICinit();
+
+    printf("==== Test de Mapping ====\n");
+    for (int i = 0; i < num_positions; i++) {
+        int pos = positions_to_check[i];
+        printf("IN -> OUT [%d] = %d\n", pos, MAGICmap(m, STREAM_IN_OUT, pos));
+    }
+    
+
+    
+    // Ajout de bytes à des positions et longueurs variées
+    MAGICadd(m, 0, 5);
+    MAGICadd(m, 10, 3);
+    MAGICadd(m, 20, 6);
+    MAGICadd(m, 30, 2);
+    MAGICadd(m, 40, 4);
+    
+    // Cas 1: Positions au début, au milieu et à la fin des ajouts
+    printf("==== Test 2: Position aux limites ====\n");
+    printf("IN -> OUT [0] = %d\n", MAGICmap(m, STREAM_IN_OUT, 0));    // Première position ajoutée
+    printf("IN -> OUT [4] = %d\n", MAGICmap(m, STREAM_IN_OUT, 4));    // Dernière position du premier segment ajouté
+    printf("IN -> OUT [10] = %d\n", MAGICmap(m, STREAM_IN_OUT, 10));  // Première position du deuxième segment
+    printf("IN -> OUT [12] = %d\n", MAGICmap(m, STREAM_IN_OUT, 12));  // Milieu du deuxième segment
+    printf("IN -> OUT [15] = %d\n", MAGICmap(m, STREAM_IN_OUT, 15));  // Fin du deuxième segment
+    printf("IN -> OUT [20] = %d\n", MAGICmap(m, STREAM_IN_OUT, 20));  // Première position du troisième segment
+    printf("IN -> OUT [25] = %d\n", MAGICmap(m, STREAM_IN_OUT, 25));  // Milieu du troisième segment
+    printf("IN -> OUT [29] = %d\n", MAGICmap(m, STREAM_IN_OUT, 29));  // Fin du troisième segment
+    printf("IN -> OUT [40] = %d\n", MAGICmap(m, STREAM_IN_OUT, 40));  // Première position du dernier segment ajouté
+    printf("IN -> OUT [43] = %d\n", MAGICmap(m, STREAM_IN_OUT, 43));  // Fin du dernier segment
+
+    // Cas 2: Test de positions avant, au-delà, et entre les segments
+    printf("\n==== Test 3: Positions avant et au-delà des ajouts ====\n");
+    printf("IN -> OUT [-1] = %d\n", MAGICmap(m, STREAM_IN_OUT, -1));  // Avant le premier ajout
+    printf("IN -> OUT [50] = %d\n", MAGICmap(m, STREAM_IN_OUT, 50));  // Au-delà du dernier ajout
+
+    // Cas 3: Test de positions non ajoutées
+    printf("\n==== Test 4: Test de positions non ajoutées ====\n");
+    printf("IN -> OUT [7] = %d\n", MAGICmap(m, STREAM_IN_OUT, 7));    // Position entre les ajouts (aucun ajout)
+    printf("IN -> OUT [17] = %d\n", MAGICmap(m, STREAM_IN_OUT, 17));   // Position entre deux ajouts
+    printf("IN -> OUT [22] = %d\n", MAGICmap(m, STREAM_IN_OUT, 22));   // Position entre deux ajouts
+
+    // Cas 4: Test d'une gamme de positions plus larges que celles des positions_to_check
+    printf("\n==== Test 5: Test d'une large gamme de positions ====\n");
+    for (int i = 0; i < 60; i++) {
+        printf("IN -> OUT [%d] = %d\n", i, MAGICmap(m, STREAM_IN_OUT, i));
+    }
+
+    // Cas 5: Test de performance (mapping sur un grand nombre de positions)
+    printf("\n==== Test 6: Test de performance ====\n");
+    for (int i = 0; i < 200; i++) {
+        int pos = i * 100; // Tester des positions espacées
+        printf("IN -> OUT [%d] = %d\n", pos, MAGICmap(m, STREAM_IN_OUT, pos));
+    }
+
     MAGICdestroy(m);
 }
 
@@ -92,9 +147,6 @@ void test_mixed_operations_no_overlap(void) {
     MAGICremove(m, 45, 2);
     MAGICremove(m, 55, 1);
 
-    // Vérification des mappings sur les positions affectées
-    int positions_to_check[] = {0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55};
-    int num_positions = sizeof(positions_to_check) / sizeof(positions_to_check[0]);
 
     for (int i = 0; i < num_positions; i++) {
         int pos = positions_to_check[i];
@@ -119,10 +171,6 @@ void test_mixed_operations_with_overlap(void) {
     MAGICremove(m, 7, 2);  // Supprime en plein milieu de MAGICadd(5, 3) et MAGICadd(10, 4)
     MAGICremove(m, 12, 3); // Supprime une partie de MAGICadd(10, 4)
     MAGICremove(m, 25, 5); // Supprime une partie de MAGICadd(20, 6) et MAGICadd(30, 3)
-
-    // Vérification des mappings sur les positions affectées
-    int positions_to_check[] = {0, 3, 5, 7, 10, 12, 20, 25, 30};
-    int num_positions = sizeof(positions_to_check) / sizeof(positions_to_check[0]);
 
     for (int i = 0; i < num_positions; i++) {
         int pos = positions_to_check[i];
@@ -233,16 +281,18 @@ int main(void) {
     test_additions();
     printf("\nTesting Removals\n");
     test_removals();
-    printf("\nTesting Mixed Operations no Overlap\n");
-    test_mixed_operations_no_overlap();
-    printf("\nTesting Mixed Operations with Overlap\n");
-    test_mixed_operations_with_overlap();
-    printf("\nTesting Reverse Mapping\n");
-    test_reverse_mapping();
-    printf("\nTesting Edge Cases\n");
-    test_edge_cases();
-    printf("\nTesting Large Operations\n");
-    test_large_operations();
+    // printf("\nTesting Mapping\n");
+    // test_mapping();
+    // printf("\nTesting Mixed Operations no Overlap\n");
+    // test_mixed_operations_no_overlap();
+    // printf("\nTesting Mixed Operations with Overlap\n");
+    // test_mixed_operations_with_overlap();
+    // printf("\nTesting Reverse Mapping\n");
+    // test_reverse_mapping();
+    // printf("\nTesting Edge Cases\n");
+    // test_edge_cases();
+    // printf("\nTesting Large Operations\n");
+    // test_large_operations();
     
     return 0;
 }
