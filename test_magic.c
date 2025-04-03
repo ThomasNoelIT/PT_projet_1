@@ -64,13 +64,42 @@ int main(void) {
     // MAGICadd(m, 5, 4);
     // test_mapping(m);
 
-    printf("Ajout de 5 octets à la position 0 \n");
-    MAGICadd(m, 0, 5);
+    // printf("Ajout de 2 octets à la position 4 \n");
+    // MAGICadd(m, 4, 2);
+    // int pos = 4;
+    // int newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // printf("Position %d (IN->OUT) est mappee a : %d\n", pos, newPos);
+    // pos = 5;
+    // newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
 
-    test_mapping(m);
+    // // Test de mappage pour un octet ajouté
+    // pos = 6;
+    // newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // printf("Position %d (IN->OUT) après ajout, mappee a : %d\n", pos, newPos);
 
-    printf("Ajout de 2 octet à la position 2\n");
-    MAGICadd(m, 2, 2);
+    // pos = 7;
+    // newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
+    // printf("Suppression de 2 octet à la position 6\n");
+    // MAGICremove(m, 6, 2);
+
+    // pos = 4;
+    // newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // printf("Position %d (IN->OUT) est mappee a : %d\n", pos, newPos);
+
+    // pos = 5;
+    // newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
+
+    // // Test de mappage pour un octet ajouté
+    // pos = 6;
+    // newPos = MAGICmap(m, STREAM_OUT_IN, pos);
+    // printf("Position %d (IN->OUT) après ajout, mappee a : %d\n", pos, newPos);
+
+    // pos = 7;
+    // newPos = MAGICmap(m,STREAM_OUT_IN, pos);
+    // printf("Position %d (IN->OUT) après suppression, mappee a : %d\n", pos, newPos);
 
     test_mapping(m);
     printf("Ajout de 1 octet à la position 5\n");
@@ -82,7 +111,6 @@ int main(void) {
     printf("Ajout de 3 octets à la position 10 \n");
     MAGICadd(m, 10, 3);
     test_mapping(m);
-    MAGICadd(m, 10, 3);
     MAGICadd(m, 15, 4);
     MAGICadd(m, 20, 6);
     MAGICadd(m, 25, 5);

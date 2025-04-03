@@ -1,5 +1,5 @@
 #include "magic.h"
-
+#include "stdbool.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -212,89 +212,98 @@ void RBTreeInsert(RBTree *tree, int pos, int delta, int timestamp) {
     } else {
         y->right = z;
     }
-    //printTree(tree);
+    printTree(tree);
     fixInsert(tree, z);
-    //printTree(tree);
+    printTree(tree);
 }
+
+
 
 RBNode* findDeleteNode(RBTree *tree, int pos) {
     RBNode *current = tree->root;
+
     while (current != tree->NIL) {
+        // Si pos est dans la plage de suppression (start <= pos <= start + length)
+        if (pos >= current->pos && pos < current->pos - current->delta) {
+            //printf("Intervalle : [%d; %d] et timestamp : %d\n", current->pos, current->pos - current->delta, current->timestamp);
+            return current;
+        }
         if (pos < current->pos) {
             current = current->left;
         } else if (pos > current->pos) {
             current = current->right;
         } else {
-            return current;  // On a trouvé le nœud
+            return current;  // Nœud trouvé, il est supprimé
         }
     }
     return NULL;  // Aucun nœud trouvé
 }
 
 
-int RBTreeFindMapping(RBTree *tree, int pos, MAGICDirection direction) {
+
+int RBTreeFindMapping(RBTree *sTree,RBTree *dTree,  int pos, MAGICDirection direction) {
     int shift = 0;
-    RBNode *current = tree->root;
+    RBNode *current = sTree->root;
     RBNode *candidate = NULL;
 
-    // Si la direction est STREAM_IN_OUT, on cherche la position actuelle
-    if (!direction) {  
-        while (current != tree->NIL) {
+    if (!direction) {  // STREAM_IN_OUT (on cherche la position actuelle)
+        while (current != sTree->NIL) {
             if (pos < current->pos) {
                 current = current->left;
             } else {
                 candidate = current;
                 shift += current->lazyShift;
-
-                // Vérifier si ce nœud a été supprimé après le décalage
-                RBNode *deleteNode = findDeleteNode(tree, candidate->pos);
-                if (deleteNode && deleteNode->timestamp > candidate->timestamp) {
-                    // La suppression est plus récente que le décalage, annuler le décalage
-                    shift = 0;  // Annuler l'impact du décalage
-                }
-
                 current = current->right;
             }
         }
 
-        if (candidate) {
+        if (candidate && candidate->parent) {
             int newPos = pos + shift;
+            
+            // Vérifier si l'origine a été supprimée
+            RBNode *deleteNode = findDeleteNode(dTree, newPos);
+            if (deleteNode && deleteNode->timestamp > candidate->timestamp) {
+                return -1;  // La position d'origine a été supprimée
+            }
             return (newPos >= 0) ? newPos : -1;
         } else {
             return pos;
         }
 
-    } else {  // Si la direction est inverse, chercher l'origine de l'élément
-        current = tree->root;
+    } else {  // STREAM_OUT_IN (on cherche l'origine avant décalage)
+        current = sTree->root;
         shift = 0;
         candidate = NULL;
 
-        while (current != tree->NIL) {
+        while (current != sTree->NIL) {
             int adjustedPos = current->pos + shift;
 
             if (pos < adjustedPos) {
                 if (current->pos < pos) {
                     candidate = current;
-                    shift += current->lazyShift;
+                    shift += current->delta;
                 }
                 current = current->left;
             } else {
                 candidate = current;
                 shift += current->lazyShift;
-
-                // Vérifier si ce nœud a été supprimé après le décalage
-                RBNode *deleteNode = findDeleteNode(tree, candidate->pos);
-                if (deleteNode && deleteNode->timestamp > candidate->timestamp) {
-                    // La suppression est plus récente que le décalage, annuler le décalage
-                    shift = 0;  // Annuler l'impact du décalage
-                }
-
                 current = current->right;
             }
         }
 
+        if (candidate && pos >= candidate->pos && pos < candidate->pos + shift) {
+            return -1;  // pos a été ajouté par MAGICadd et ne possède pas de position d'origine
+        }
+
         if (candidate) {
             int originalPos = pos - shift;
+
+            // Vérifier si l'origine a été supprimée
+            RBNode *deleteNode = findDeleteNode(dTree, originalPos);
+            if (deleteNode && deleteNode->timestamp > candidate->timestamp) {
+                return -1;  // La position d'origine a été supprimée
+            }
+            printf("La position originale : %d et la position actuelle : %d \n", originalPos, pos);
             return (originalPos >= 0) ? originalPos : -1;
         } else {
             return pos;
@@ -377,10 +386,9 @@ int MAGICmap(MAGIC m, MAGICDirection direction, int pos){
     if (!m || pos < 0)
         return -1;
 
-    int shiftedPos = RBTreeFindMapping(m->shiftTree, pos, direction);
-    int deleted = RBTreeFindMapping(m->deleteTree, shiftedPos, direction);
+    int shiftedPos = RBTreeFindMapping(m->shiftTree, m->deleteTree, pos,direction);
     
-    return (deleted == -1) ? -1 : shiftedPos;
+    return shiftedPos;
 }
 
 void MAGICdestroy(MAGIC m){
