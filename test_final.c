@@ -42,24 +42,24 @@ void test_removals(void) {
     MAGIC m = MAGICinit();
     
     // retrait de bytes à différentes positions avec différentes longueurs
-    // MAGICremove(m, 0, 2);
+    MAGICremove(m, 0, 2);
     MAGICremove(m, 3, 2);
     MAGICremove(m, 6, 1);
     MAGICremove(m, 8, 2);
-    // MAGICremove(m, 12, 3);
-    // MAGICremove(m, 18, 4);
-    // MAGICremove(m, 25, 2);
-    // MAGICremove(m, 30, 3);
-    // MAGICremove(m, 35, 1);
-    // MAGICremove(m, 40, 4);
-    // MAGICremove(m, 50, 1);
-    // MAGICremove(m, 55, 3);
-    // MAGICremove(m, 60, 2);
-    // MAGICremove(m, 70, 5);
-    // MAGICremove(m, 80, 4);
-    // MAGICremove(m, 90, 3);
-    // MAGICremove(m, 100, 2);
-    // MAGICremove(m, 110, 1);
+    MAGICremove(m, 12, 3);
+    MAGICremove(m, 18, 4);
+    MAGICremove(m, 25, 2);
+    MAGICremove(m, 30, 3);
+    MAGICremove(m, 35, 1);
+    MAGICremove(m, 40, 4);
+    MAGICremove(m, 50, 1);
+    MAGICremove(m, 55, 3);
+    MAGICremove(m, 60, 2);
+    MAGICremove(m, 70, 5);
+    MAGICremove(m, 80, 4);
+    MAGICremove(m, 90, 3);
+    MAGICremove(m, 100, 2);
+    MAGICremove(m, 110, 1);
 
     for (int i = 0; i < num_positions; i++) {
         int pos = positions_to_check[i];
@@ -72,7 +72,7 @@ void test_removals(void) {
 void test_mapping(void) {
     MAGIC m = MAGICinit();
 
-    printf("==== Test de Mapping ====\n");
+    printf("==== Test 1: Test de Mapping ====\n");
     for (int i = 0; i < num_positions; i++) {
         int pos = positions_to_check[i];
         printf("IN -> OUT [%d] = %d\n", pos, MAGICmap(m, STREAM_IN_OUT, pos));
@@ -275,24 +275,109 @@ void test_large_operations(void) {
     MAGICdestroy(m);
 }
 
+void test_invalid_positions() {
+    printf("=== test_invalid_positions ===\n");
+    MAGIC m = MAGICinit();
+
+    MAGICadd(m, 0, 10); // [0..10)
+
+    printf("map(-5) = %d\n", MAGICmap(m, STREAM_IN_OUT, -5));
+    printf("map(1000000) = %d\n", MAGICmap(m, STREAM_IN_OUT, 1000000));
+    printf("reverse map(-10) = %d\n", MAGICmap(m, STREAM_OUT_IN, -10));
+    printf("reverse map(1000000) = %d\n", MAGICmap(m, STREAM_OUT_IN, 1000000));
+
+    MAGICdestroy(m);
+}
+
+void test_roundtrip_in_out_in() {
+    printf("=== test_roundtrip_in_out_in ===\n");
+    MAGIC m = MAGICinit();
+
+    MAGICadd(m, 10, 10); // [10..20)
+    MAGICadd(m, 50, 5);  // [50..55)
+
+    for (int i = 0; i < 60; i++) {
+        int out = MAGICmap(m, STREAM_IN_OUT, i);
+        if (out != -1) {
+            int back = MAGICmap(m, STREAM_OUT_IN, out);
+            printf("in %d -> out %d -> in %d\n", i, out, back);
+        } else {
+            printf("in %d -> out %d (hors mapping)\n", i, out);
+        }
+    }
+
+    MAGICdestroy(m);
+}
+
+void test_roundtrip_out_in_out() {
+    printf("=== test_roundtrip_out_in_out ===\n");
+    MAGIC m = MAGICinit();
+
+    MAGICadd(m, 100, 5);   // [100..105)
+    MAGICadd(m, 200, 10);  // [200..210)
+
+    for (int out = 0; out < 20; out++) {
+        int in = MAGICmap(m, STREAM_OUT_IN, out);
+        if (in != -1) {
+            int back = MAGICmap(m, STREAM_IN_OUT, in);
+            printf("out %d -> in %d -> out %d\n", out, in, back);
+        } else {
+            printf("out %d -> in %d (hors mapping)\n", out, in);
+        }
+    }
+
+    MAGICdestroy(m);
+}
+
+void test_full_segment_removal() {
+    printf("=== test_full_segment_removal ===\n");
+    MAGIC m = MAGICinit();
+
+    MAGICadd(m, 30, 10);   // [30..40)
+
+    printf("Mapping avant suppression :\n");
+    for (int i = 25; i < 45; i++) {
+        printf("map(%d) = %d\n", i, MAGICmap(m, STREAM_IN_OUT, i));
+    }
+
+    MAGICremove(m, 30, 10); // Suppression complète du segment
+
+    printf("Mapping après suppression complète :\n");
+    for (int i = 25; i < 45; i++) {
+        printf("map(%d) = %d\n", i, MAGICmap(m, STREAM_IN_OUT, i));
+    }
+
+    MAGICdestroy(m);
+}
+
 
 int main(void) {
     printf("Testing Additions\n");
     test_additions();
     printf("\nTesting Removals\n");
     test_removals();
-    // printf("\nTesting Mapping\n");
-    // test_mapping();
-    // printf("\nTesting Mixed Operations no Overlap\n");
-    // test_mixed_operations_no_overlap();
-    // printf("\nTesting Mixed Operations with Overlap\n");
-    // test_mixed_operations_with_overlap();
-    // printf("\nTesting Reverse Mapping\n");
-    // test_reverse_mapping();
-    // printf("\nTesting Edge Cases\n");
-    // test_edge_cases();
-    // printf("\nTesting Large Operations\n");
-    // test_large_operations();
+    printf("\nTesting Mapping\n");
+    test_mapping();
+    printf("\nTesting Mixed Operations no Overlap\n");
+    test_mixed_operations_no_overlap();
+    printf("\nTesting Mixed Operations with Overlap\n");
+    test_mixed_operations_with_overlap();
+    printf("\nTesting Reverse Mapping\n");
+    test_reverse_mapping();
+    printf("\nTesting Edge Cases\n");
+    test_edge_cases();
+    printf("\nTesting Large Operations\n");
+    test_large_operations();
+
+    printf("\nTesting Invalid Positions\n");
+    test_invalid_positions();
+    printf("\nTesting Roundtrip IN -> OUT -> IN\n");
+    test_roundtrip_in_out_in();
+    printf("\nTesting Roundtrip OUT -> IN -> OUT\n");
+    test_roundtrip_out_in_out();
+    printf("\nTesting Full Segment Removal\n");
+    test_full_segment_removal();
+    
     
     return 0;
 }
