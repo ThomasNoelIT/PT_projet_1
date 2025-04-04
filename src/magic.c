@@ -213,7 +213,9 @@ void RBTreeInsert(RBTree *tree, int pos, int delta, int timestamp) {
     } else {
         y->right = z;
     }
+    //printTree(tree);
     fixInsert(tree, z);
+    //printTree(tree);
 }
 
 
