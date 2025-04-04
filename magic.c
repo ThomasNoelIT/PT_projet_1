@@ -451,7 +451,7 @@ void RBTreeFreeNodes(RBTree *tree, RBNode *node) {
     if (node != tree->NIL) {
         RBTreeFreeNodes(tree, node->left); // Recursively free left subtree
         RBTreeFreeNodes(tree, node->right); // Recursively free right subtree
-        free(node); free(node);  // Free the current node
+        free(node); // Free the current node
     }
 }
 
